@@ -1,0 +1,715 @@
+/* ===========================================
+   СИСТЕМА ТЕМ TELEGRAM SENDER
+   Современные темы с полной поддержкой цветов
+   =========================================== */
+
+/* СВЕТЛАЯ ТЕМА - светлый фон со светлым текстом */
+[data-theme="light"],
+:root:not([data-theme]) {
+    /* Фон и поверхности */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    --bg-quaternary: #dee2e6;
+    --bg-inverse: #343a40;
+
+    /* Текст */
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-tertiary: #868e96;
+    --text-accent: #0d6efd;
+    --text-destructive: #dc3545;
+    --text-inverse: #ffffff;
+
+    /* Границы */
+    --border: #dee2e6;
+    --border-hover: #e0e0e0;
+    --border-accent: #0d6efd;
+
+    /* Фон акцентов */
+    --accent-bg: rgba(13, 110, 253, 0.1);
+    --destructive-bg: rgba(220, 53, 69, 0.1);
+    --success-bg: rgba(40, 167, 69, 0.1);
+}
+
+/* ТЕМНАЯ ТЕМА - глубокая и контрастная */
+[data-theme="dark"] {
+    /* Фон и поверхности */
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --bg-quaternary: #30363d;
+    --bg-inverse: #f0f6fc;
+
+    /* Текст */
+    --text-primary: #f0f6fc;
+    --text-secondary: #c9d1d9;
+    --text-tertiary: #8b949e;
+    --text-accent: #f59e0b;
+    --text-destructive: #f85149;
+    --text-inverse: #0d1117;
+
+    /* Границы */
+    --border: #30363d;
+    --border-hover: #484f58;
+    --border-accent: #d29922;
+
+    /* Фон акцентов */
+    --accent-bg: rgba(245, 158, 11, 0.15);
+    --destructive-bg: rgba(248, 81, 73, 0.15);
+    --success-bg: rgba(63, 185, 80, 0.15);
+}
+
+/* СИНЕ-ГОЛУБАЯ ТЕМА - холодная и минималистическая */
+[data-theme="blue-cyan"] {
+    --bg-primary: #0f1419;
+    --bg-secondary: #1e2530;
+    --bg-tertiary: #2a3441;
+    --bg-quaternary: #3b4451;
+    --bg-inverse: #e8f4fd;
+
+    --text-primary: #e8f4fd;
+    --text-secondary: #a8c5da;
+    --text-tertiary: #7a9cc6;
+    --text-accent: #00d4ff;
+    --text-destructive: #ff6b9d;
+    --text-inverse: #0f1419;
+
+    --border: #2a3441;
+    --border-hover: #3b4451;
+    --border-accent: #00d4ff;
+
+    --accent-bg: rgba(0, 212, 255, 0.15);
+    --destructive-bg: rgba(255, 107, 157, 0.15);
+    --success-bg: rgba(9, 255, 112, 0.15);
+}
+
+/* ===========================================
+   ПЕРЕКЛЮЧАТЕЛЬ ТЕМ
+   =========================================== */
+
+.theme-switcher {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-option {
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.theme-option:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.theme-option.active {
+    background: var(--accent-primary);
+    color: var(--text-inverse);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ===========================================
+   ПРИНУДИТЕЛЬНОЕ ПРИМЕНЕНИЕ ТЕМ К ВСЕМ ЭЛЕМЕНТАМ
+   =========================================== */
+
+/* Тело документа */
+[data-theme] body {
+    background: var(--bg-primary);
+}
+
+/* Заголовки */
+[data-theme] h1,
+[data-theme] h2,
+[data-theme] h3,
+[data-theme] h4,
+[data-theme] h5,
+[data-theme] h6 {
+    color: var(--text-primary);
+}
+
+/* Базовые элементы */
+[data-theme] button {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+[data-theme] button:hover {
+    background: var(--bg-quaternary);
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+/* Формы с темами */
+[data-theme] input,
+[data-theme] textarea,
+[data-theme] select {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+[data-theme] input:focus,
+[data-theme] textarea:focus,
+[data-theme] select:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(var(--accent-primary), 0.1);
+    background: var(--bg-primary);
+}
+
+/* Контейнеры */
+[data-theme] .section-blue,
+[data-theme] .section-red,
+[data-theme] .section-green,
+[data-theme] .section-info,
+[data-theme] section {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+}
+
+/* Бейджи со статусами */
+[data-theme] .badge {
+    background: var(--accent-bg);
+    color: var(--text-accent);
+}
+
+/* Карточки */
+[data-theme] .card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+}
+
+/* Панель навигации */
+[data-theme] .toolbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+/* Таблица пользователей */
+[data-theme] .users-table th {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+}
+
+[data-theme] .users-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+[data-theme] .users-table td {
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+}
+
+/* Модальные окна */
+[data-theme] .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme] .modal-content {
+    background: var(--bg-primary);
+}
+
+/* Панель рассылки */
+[data-theme] .broadcast-section {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+}
+
+/* ===========================================
+   СУПЕР-СИЛЬНЫЕ ТЕМЫ С МАКСИМАЛЬНЫМ ПРИОРИТЕТОМ
+   =========================================== */
+
+/* ТЕМНАЯ ТЕМА - ПЕРВООЧЕРЕДНО */
+[data-theme="dark"] body {
+    background: #0d1117 !important;
+    color: #f0f6fc !important;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: #f0f6fc !important;
+}
+
+[data-theme="dark"] .section-blue,
+[data-theme="dark"] .section-red,
+[data-theme="dark"] .section-green,
+[data-theme="dark"] .section-info,
+[data-theme="dark"] .toolbar,
+[data-theme="dark"] .card,
+[data-theme="dark"] .users-table {
+    background: #161b22 !important;
+    color: #f0f6fc !important;
+    border-color: #30363d !important;
+}
+
+[data-theme="dark"] button,
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background: #21262d !important;
+    color: #f0f6fc !important;
+    border: 1px solid #30363d !important;
+}
+
+[data-theme="dark"] .theme-switcher,
+[data-theme="dark"] .users-table th {
+    background: #161b22 !important;
+    border-color: #30363d !important;
+}
+
+[data-theme="dark"] .users-table th {
+    background: #21262d !important;
+}
+
+[data-theme="dark"] .users-table tbody tr:hover {
+    background: #21262d !important;
+}
+
+/* СИНЕ-ГОЛУБАЯ ТЕМА - ПЕРВООЧЕРЕДНО */
+[data-theme="blue-cyan"] body {
+    background: #0f1419 !important;
+    color: #e8f4fd !important;
+}
+
+[data-theme="blue-cyan"] h1,
+[data-theme="blue-cyan"] h2,
+[data-theme="blue-cyan"] h3,
+[data-theme="blue-cyan"] h4,
+[data-theme="blue-cyan"] h5,
+[data-theme="blue-cyan"] h6 {
+    color: #e8f4fd !important;
+}
+
+[data-theme="blue-cyan"] .section-blue,
+[data-theme="blue-cyan"] .section-red,
+[data-theme="blue-cyan"] .section-green,
+[data-theme="blue-cyan"] .section-info,
+[data-theme="blue-cyan"] .toolbar,
+[data-theme="blue-cyan"] .card,
+[data-theme="blue-cyan"] .users-table {
+    background: #1e2530 !important;
+    color: #e8f4fd !important;
+    border-color: #2a3441 !important;
+}
+
+[data-theme="blue-cyan"] button,
+[data-theme="blue-cyan"] input,
+[data-theme="blue-cyan"] textarea,
+[data-theme="blue-cyan"] select {
+    background: #2a3441 !important;
+    color: #e8f4fd !important;
+    border: 1px solid #2a3441 !important;
+}
+
+[data-theme="blue-cyan"] .theme-switcher,
+[data-theme="blue-cyan"] .users-table th {
+    background: #1e2530 !important;
+    border-color: #2a3441 !important;
+}
+
+[data-theme="blue-cyan"] .users-table th {
+    background: #2a3441 !important;
+}
+
+[data-theme="blue-cyan"] .users-table tbody tr:hover {
+    background: #2a3441 !important;
+}
+
+/* ===========================================
+   ВСПЛЫВАЮЩИЕ МОДАЛЬНЫЕ ОКНА ДЛЯ МАСТЕРОВ
+   =========================================== */
+
+/* Базовый стиль модального окна */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6) !important;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: modal-fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-backdrop.show {
+    display: flex;
+}
+
+/* ЗАКРЫТИЕ МОДАЛЬНЫХ ОКОН ПО КЛИКУ ВНЕ ИХ */
+.modal-backdrop.show:active,
+.modal-backdrop.show:hover {
+    cursor: pointer;
+}
+
+.modal-backdrop.show .modal-dialog,
+.modal-backdrop.show .wizard-modal {
+    cursor: default;
+}
+
+/* ПРЕПЯТСТВОВАТЬ ПРОПУСКАНИЮ КЛИКОВ ИЗ КОНТЕНТА */
+.modal-dialog *,
+.wizard-modal * {
+    pointer-events: auto !important;
+}
+
+.modal-dialog {
+    background: var(--bg-primary) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: var(--space-2xl) !important;
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    position: relative !important;
+    box-shadow: var(--shadow-2xl) !important;
+    animation: modal-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.modal-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: var(--space-lg) !important;
+    padding-bottom: var(--space-md) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+.modal-title {
+    color: var(--text-primary) !important;
+    font-size: var(--font-size-xl) !important;
+    font-weight: var(--font-weight-bold) !important;
+    margin: 0 !important;
+}
+
+.modal-close {
+    background: none !important;
+    border: none !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+    color: var(--text-secondary) !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: var(--radius-sm) !important;
+    transition: all 0.2s ease !important;
+}
+
+.modal-close:hover {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body {
+    margin-bottom: var(--space-xl) !important;
+}
+
+.modal-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: var(--space-md) !important;
+    padding-top: var(--space-lg) !important;
+    border-top: 1px solid var(--border) !important;
+}
+
+/* Темная тема для модальных окон */
+[data-theme="dark"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+[data-theme="blue-cyan"] .modal-backdrop {
+    background: rgba(15, 23, 42, 0.7) !important;
+}
+
+/* Анимации */
+@keyframes modal-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modal-slide-in {
+    from { transform: scale(0.9) translateY(-20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ===================
+   ВСПЛЫВАЮЩИЕ МОДАЛЬНЫЕ ОКНА - ТЕМЫ
+   =================== */
+
+/* Обновление существующих мастеров на модальные окна */
+#shotsWizard, #sheetsWizard, #templateWizard, #soundSettingsWizard, #linkWizard {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 2001 !important;
+    background: var(--bg-primary) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: var(--space-2xl) !important;
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    box-shadow: var(--shadow-2xl) !important;
+    border: none !important;
+}
+
+/* Специально для ботов - убедиться что оно нормально отображается */
+#botsWizard {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 2002 !important;
+    background: var(--bg-primary) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: var(--space-2xl) !important;
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    box-shadow: var(--shadow-2xl) !important;
+    border: none !important;
+    color: var(--text-primary) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* СТИЛИЗАЦИЯ ВНУТРЕННИХ ЭЛЕМЕНТОВ МОДАЛЬНЫХ ОКОН */
+#botsWizard h4,
+#sheetsWizard h4,
+#botsWizard label,
+#sheetsWizard label,
+#botsWizard input,
+#sheetsWizard input {
+    color: var(--text-primary) !important;
+}
+
+#botsWizard input,
+#sheetsWizard input {
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 6px !important;
+}
+
+#botsWizard input:focus,
+#sheetsWizard input:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1) !important;
+}
+
+/* Заголовки мастеров с кнопками закрытия */
+#sheetsWizard::before,
+#templateWizard::before,
+#soundSettingsWizard::before,
+#linkWizard::before {
+    content: none;
+}
+
+.wizard-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: var(--space-lg) !important;
+    padding-bottom: var(--space-md) !important;
+    border-bottom: 1px solid var(--border) !important;
+    margin: 0 0 var(--space-lg) 0 !important;
+    padding: 0 0 var(--space-md) 0 !important;
+}
+
+.wizard-title {
+    color: var(--text-primary) !important;
+    font-size: var(--font-size-xl) !important;
+    font-weight: var(--font-weight-bold) !important;
+    margin: 0 !important;
+}
+
+.wizard-close-btn {
+    background: none !important;
+    border: none !important;
+    font-size: 24px !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease !important;
+}
+
+.wizard-close-btn:hover {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Управление модальными окнами из JavaScript */
+.modal-backdrop.show #botsWizard,
+.modal-backdrop.show #sheetsWizard,
+.modal-backdrop.show #templateWizard,
+.modal-backdrop.show #soundSettingsWizard,
+.modal-backdrop.show #linkWizard,
+.modal-backdrop.show #userHistoryWizard {
+    display: block !important;
+}
+
+/* Функции открытия/закрытия модальных окон */
+.wizard-modal {
+    position: relative;
+}
+
+.wizard-modal .wizard-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.wizard-modal .wizard-close:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.icon-clock::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F59E0B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12,6 12,12 16,14'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.icon-message::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236C757D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.icon-link::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230896B2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.icon-filter::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236C757D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.icon-button::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236C757D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.icon-template::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236C757D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Cpath d='M9 12l2 2 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+/* Темная тема для иконок */
+[data-theme="dark"] .icon-send::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF6B6B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 2L11 13m0 0L2 12l9-1 0 9z'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .icon-broadcast::before,
+[data-theme="dark"] .icon-users::before,
+[data-theme="dark"] .icon-message::before,
+[data-theme="dark"] .icon-link::before,
+[data-theme="dark"] .icon-filter::before,
+[data-theme="dark"] .icon-button::before,
+[data-theme="dark"] .icon-template::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F0F6FC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3C/");
+}
+
+/* Синяя тема для специальных иконок */
+[data-theme="blue-cyan"] .icon-send::before,
+[data-theme="blue-cyan"] .icon-broadcast::before,
+[data-theme="blue-cyan"] .icon-bot::before,
+[data-theme="blue-cyan"] .icon-users::before,
+[data-theme="blue-cyan"] .icon-sheets::before,
+[data-theme="blue-cyan"] .icon-clock::before,
+[data-theme="blue-cyan"] .icon-message::before,
+[data-theme="blue-cyan"] .icon-link::before,
+[data-theme="blue-cyan"] .icon-filter::before,
+[data-theme="blue-cyan"] .icon-button::before,
+[data-theme="blue-cyan"] .icon-template::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300D4FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3C/");
+}
