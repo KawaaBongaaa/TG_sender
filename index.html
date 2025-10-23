@@ -7,7 +7,8 @@
     <title>Telegram Sender - Панель рассылки</title>
 
     <!-- Telegram WebApp SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- <script src="https://telegram.org/js/telegram-web-app.js"></script> -->
+    <!-- ЗАКОММЕНТИРОВАНО: для локального тестирования -->
 
     <!-- Конфигурация и стили -->
     <link rel="stylesheet" href="./style-clean.css">
@@ -69,10 +70,6 @@
             <button id="cancelBroadcastWizardBtn" style="padding: 10px 20px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">❌ Отмена</button>
             <button id="createBroadcastTemplateBtn" style="padding: 10px 20px; background: var(--accent-success); color: var(--text-inverse); border: none; border-radius: 8px; cursor: pointer;">✅ Создать шаблон</button>
         </div>
-    </div>
-
-    <div id="modalBackdrop" class="modal-backdrop">
-        <!-- Модальные окна -->
     </div>
 
     <!-- ВСПЛЫВАЮЩИЕ МОДАЛЬНЫЕ ОКНА -->

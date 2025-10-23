@@ -715,12 +715,52 @@ window.TelegramUsersAdvanced = class {
 
             console.log('📊 Loading from Google Sheets:', url);
 
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'text/csv'
+            // Создаем AbortController для timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 секунд таймаут
+
+            let response;
+            try {
+                response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/csv'
+                    },
+                    signal: controller.signal
+                });
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Превышен лимит времени ожидания (30 секунд). Проверьте:\n1. Доступность Google Sheets\n2. Правильность URL таблицы\n3. Публикацию таблицы для просмотра');
                 }
-            });
+
+                // Попробуем прямой доступ без прокси если ошибка CORS
+                if (isLocalhost && fetchError.message.includes('CORS') || fetchError.message.includes('cors')) {
+                    console.warn('🔄 CORS error detected on localhost - trying direct access...');
+
+                    const directUrl = config.SHEET_ID.startsWith('2PACX-') ?
+                        `https://docs.google.com/spreadsheets/d/e/${config.SHEET_ID}/pub?gid=0&single=true&output=csv` :
+                        `https://docs.google.com/spreadsheets/d/${config.SHEET_ID}/gviz/tq?tqx=out:csv`;
+
+                    console.log('📊 Trying direct access:', directUrl);
+
+                    try {
+                        response = await fetch(directUrl, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'text/csv'
+                            }
+                        });
+                    } catch (directError) {
+                        throw new Error(`CORS bypassed but request failed: ${directError.message}`);
+                    }
+                } else {
+                    throw fetchError;
+                }
+            }
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -1155,24 +1195,40 @@ window.TelegramUsersAdvanced = class {
      */
     hasBotAndSheetConfigured() {
         try {
-            // Проверяем наличие storage модуля
-            if (!this.mainApp.modules?.storage) {
-                console.log('❌ hasBotAndSheetConfigured: Storage not initialized');
-                return false;
-            }
+            // Сначала пытаемся восстановить конфигурацию из сохраненных настроек
+            const savedBotId = localStorage.getItem('telegram_sender_current_bot');
+            const savedSheetId = localStorage.getItem('telegram_sender_current_sheet');
 
-            // Используем ключи из текущей конфигурации ботов
-            const currentBotId = localStorage.getItem('telegram_sender_current_bot');
-            const currentSheetId = localStorage.getItem('telegram_sender_current_sheet');
+            console.log('🔍 Checking configuration:', { savedBotId, savedSheetId });
+
+            if (savedBotId && this.mainApp?.bots) {
+                // Находим сохраненного бота
+                const savedBot = this.mainApp.bots.find(bot => bot.id === savedBotId);
+                if (savedBot && savedSheetId) {
+                    // Находим сохраненную таблицу
+                    const savedSheet = savedBot.sheets?.find(sheet => sheet.id === savedSheetId);
+                    if (savedSheet) {
+                        // Автоматически восстанавливаем конфигурацию
+                        if (window.CONFIG) {
+                            window.CONFIG.BOT_TOKEN = savedBot.token;
+                            window.CONFIG.SHEET_ID = savedSheet.sheetId;
+                            console.log('✅ Config restored from localStorage:', {
+                                bot: savedBot.name,
+                                token: savedBot.token.substring(0, 8) + '...',
+                                sheet: savedSheet.name,
+                                sheetId: savedSheet.sheetId
+                            });
+                        }
+                    }
+                }
+            }
 
             const hasBot = !!window.CONFIG?.BOT_TOKEN;
             const hasSheet = !!window.CONFIG?.SHEET_ID;
 
-            console.log('🔍 Bot and sheet configuration result:', {
+            console.log('🔍 Final configuration check:', {
                 hasBot: hasBot,
-                hasCurrentBotId: !!currentBotId,
                 hasSheet: hasSheet,
-                hasCurrentSheetId: !!currentSheetId,
                 overallResult: hasBot && hasSheet
             });
 

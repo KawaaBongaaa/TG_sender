@@ -82,6 +82,7 @@ class TelegramSender {
     async checkTelegramSDK() {
         return new Promise((resolve, reject) => {
             if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                // Настоящий SDK загружен
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
                 this.sdkReady = true;
@@ -89,17 +90,29 @@ class TelegramSender {
                 return;
             }
 
-            setTimeout(() => reject(new Error('SDK не загрузился')), 3000);
+            // 🛠️ ЗАГЛУШКА ДЛЯ ТЕСТИРОВАНИЯ БЕЗ SDK
+            console.warn('🔧 Telegram SDK не найден - устанавливаем заглушку для тестирования');
 
-            const timer = setInterval(() => {
-                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-                    clearInterval(timer);
-                    Telegram.WebApp.ready();
-                    Telegram.WebApp.expand();
-                    this.sdkReady = true;
-                    resolve();
+            window.Telegram = {
+                WebApp: {
+                    ready: () => console.log('🔧 Mock Telegram.WebApp.ready()'),
+                    expand: () => console.log('🔧 Mock Telegram.WebApp.expand()'),
+                    close: () => console.log('🔧 Mock Telegram.WebApp.close()'),
+                    initDataUnsafe: {
+                        user: {
+                            id: 123456789,        // Тестовый ID
+                            username: 'test_user',
+                            first_name: 'Тестовый',
+                            last_name: 'Пользователь'
+                        }
+                    },
+                    themeParams: {},
+                    colorScheme: 'light'
                 }
-            }, 100);
+            };
+
+            this.sdkReady = true;
+            resolve();
         });
     }
 
@@ -141,6 +154,7 @@ class TelegramSender {
 
         // Подключение интерфейса
         this.setupEventListeners();
+        this.initModalEvents();
 
         console.log('🎨 UI initialized');
     }
@@ -152,8 +166,8 @@ class TelegramSender {
         this.bindBtn('sendMassBtn', () => this.modules.messaging?.startMassBroadcast?.());
 
         // Управление ботами
-        this.bindBtn('editBotsBtn', () => this.showModal('botsWizard'));
-        this.bindBtn('editSheetsBtn', () => this.showModal('sheetsWizard'));
+        this.bindBtn('editBotsBtn', () => this.modules.bots?.showBotsWizard?.());
+        this.bindBtn('editSheetsBtn', () => this.modules.bots?.showSheetsWizard?.());
         this.bindBtn('saveBotBtn', () => this.saveNewBot());
 
         // Шаблоны и ссылки
@@ -639,15 +653,19 @@ class TelegramSender {
         console.log('CSV import not yet implemented');
     }
 
-    // Модальные окна
+    // Модальные окна с системой backdrop
     showModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.style.display = 'block';
+        const backdrop = document.getElementById('modalBackdrop');
+        if (backdrop) {
+            backdrop.classList.add('show');
+        }
     }
 
     hideModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.style.display = 'none';
+        const backdrop = document.getElementById('modalBackdrop');
+        if (backdrop) {
+            backdrop.classList.remove('show');
+        }
     }
 
     // Сохранение настроек звука
@@ -744,8 +762,20 @@ class TelegramSender {
     }
 
     closeAllModals() {
-        const modals = document.querySelectorAll('.wizard-modal, .modal-backdrop');
+        console.log('🔽 Closing all modals...');
+
+        // Убираем класс show с backdrop
+        const backdrop = document.getElementById('modalBackdrop');
+        if (backdrop) {
+            backdrop.classList.remove('show');
+            console.log('✅ Backdrop show class removed');
+        }
+
+        // Скрываем все модальные окна (только wizard-modal, не backdrop)
+        const modals = document.querySelectorAll('.wizard-modal');
         modals.forEach(modal => modal.style.display = 'none');
+
+        console.log('✅ All modals closed');
     }
 
     /**

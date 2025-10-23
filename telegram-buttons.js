@@ -128,7 +128,7 @@ class TelegramButtons {
             buttonEl.innerHTML = `
                 <span style="font-weight: 500;">${button.text}</span>
                 <span style="opacity: 0.8; font-size: 9px;">(${button.type})</span>
-                <button onclick="window.telegramSender.buttons.removeMessageButton('${button.id}')"
+                <button onclick="window.telegramSender.modules.buttons.removeMessageButton('${button.id}')"
                         style="background: none; border: none; color: inherit; cursor: pointer; padding: 0; font-size: 14px; line-height: 1; margin-left: 4px;">×</button>
             `;
 
@@ -237,7 +237,7 @@ class TelegramButtons {
                         style="flex: 1; padding: 8px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">
                     Отмена
                 </button>
-                <button onclick="window.telegramSender.buttons.addButtonFromDialog()"
+                <button onclick="window.telegramSender.modules.buttons.addButtonFromDialog()"
                         style="flex: 1; padding: 8px; background: var(--accent-success); color: var(--text-inverse); border: none; border-radius: 4px; cursor: pointer;">
                     ➕ Добавить кнопку
                 </button>

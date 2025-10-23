@@ -9,6 +9,12 @@ class TelegramBots {
         console.log('🤖 TelegramBots module initialized');
     }
 
+    init() {
+        console.log('🤖 TelegramBots module init - setting up event listeners...');
+        this.setupBotEventListeners();
+        console.log('🤖 TelegramBots module init completed');
+    }
+
     /**
      * ДОБАВЛЕНИЕ НОВОГО БОТА
      */
@@ -234,6 +240,7 @@ class TelegramBots {
                     });
                     await this.sender.modules.users.reloadUsersData();
                     console.log('✅ Автоматическая загрузка завершилась успешно');
+                    this.sender.showStatus('Автоматическая загрузка пользователей завершена', 'success');
                 } catch (error) {
                     console.error('❌ Ошибка автоматической загрузки:', error);
                     this.sender.showStatus('Ошибка автоматической загрузки пользователей', 'error');
@@ -428,10 +435,23 @@ class TelegramBots {
      * ПОКАЗ WIZARD БОТОВ
      */
     showBotsWizard() {
+        console.log('🤖 Opening bots wizard...');
+
+        // Показываем backdrop
+        const backdrop = document.getElementById('modalBackdrop');
+        if (backdrop) {
+            backdrop.classList.add('show');
+            console.log('✅ Modal backdrop shown');
+        }
+
+        // Показываем само модальное окно
         const wizard = document.getElementById('botsWizard');
         if (wizard) {
             wizard.style.display = 'block';
             this.updateBotListContainer();
+            console.log('✅ Bots wizard shown');
+        } else {
+            console.error('❌ Bots wizard element not found');
         }
     }
 
@@ -823,10 +843,23 @@ class TelegramBots {
      * ПОКАЗ WIZARD БОТОВ
      */
     showBotsWizard() {
+        console.log('🤖 Opening bots wizard...');
+
+        // Показываем backdrop
+        const backdrop = document.getElementById('modalBackdrop');
+        if (backdrop) {
+            backdrop.classList.add('show');
+            console.log('✅ Modal backdrop shown');
+        }
+
+        // Показываем само модальное окно
         const wizard = document.getElementById('botsWizard');
         if (wizard) {
             wizard.style.display = 'block';
             this.updateBotListContainer();
+            console.log('✅ Bots wizard shown');
+        } else {
+            console.error('❌ Bots wizard element not found');
         }
     }
 
