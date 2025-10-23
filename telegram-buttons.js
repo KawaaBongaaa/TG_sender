@@ -195,6 +195,117 @@ class TelegramButtons {
     }
 
     /**
+     * ПОКАЗАТЬ ФОРМУ ДОБАВЛЕНИЯ КНОПКИ
+     */
+    showAddButtonDialog() {
+        const content = `
+            <div style="margin-bottom: 20px;">
+                <h4>➕ Добавление inline-кнопки</h4>
+                <p style="color: var(--text-secondary); font-size: 11px;">
+                    Inline-кнопки прикрепляются к сообщению и позволяют пользователю взаимодействовать
+                </p>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; color: var(--text-primary); font-size: 12px;">
+                    <strong>Текст кнопки:</strong>
+                </label>
+                <input type="text" id="dialogButtonText" placeholder="Например: 'Купить'"
+                    style="width: 100%; padding: 8px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; color: var(--text-primary); font-size: 12px;">
+                    <strong>Тип действия:</strong>
+                </label>
+                <select id="dialogButtonType" style="width: 100%; padding: 8px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px;">
+                    <option value="url">🌐 Открыть URL</option>
+                    <option value="callback_data">🔄 Callback (для бота)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; color: var(--text-primary); font-size: 12px;" id="dialogButtonUrlLabel">
+                    <strong>URL адреса:</strong>
+                </label>
+                <input type="text" id="dialogButtonUrl" placeholder="https://example.com"
+                    style="width: 100%; padding: 8px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="this.closest('#customModalBackdrop').remove()"
+                        style="flex: 1; padding: 8px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">
+                    Отмена
+                </button>
+                <button onclick="window.telegramSender.buttons.addButtonFromDialog()"
+                        style="flex: 1; padding: 8px; background: var(--accent-success); color: var(--text-inverse); border: none; border-radius: 4px; cursor: pointer;">
+                    ➕ Добавить кнопку
+                </button>
+            </div>
+        `;
+
+        this.parent.showCustomModal('➕ Inline-кнопка', content);
+    }
+
+    /**
+     * ДОБАВИТЬ КНОПКУ ИЗ МОДАЛЬНОГО ДИАЛОГА
+     */
+    addButtonFromDialog() {
+        const textInput = document.getElementById('dialogButtonText');
+        const urlInput = document.getElementById('dialogButtonUrl');
+        const typeSelect = document.getElementById('dialogButtonType');
+
+        const text = textInput?.value?.trim();
+        const url = urlInput?.value?.trim();
+        const type = typeSelect?.value || 'url';
+
+        if (!text || !url) {
+            alert('Заполните текст кнопки и URL/Callback');
+            return;
+        }
+
+        // Валидация для URL типа
+        if (type === 'url' && !url.match(/^https?:\/\/.+/i)) {
+            alert('URL должен начинаться с http:// или https://');
+            return;
+        }
+
+        // Проверка лимита кнопок
+        if (this.messageButtons.length >= 10) {
+            alert('Максимум 10 кнопок на сообщение');
+            return;
+        }
+
+        // Проверяем что такая кнопка не существует
+        const exists = this.messageButtons.some(btn =>
+            btn.text === text && btn.url === url && btn.type === type
+        );
+
+        if (exists) {
+            alert('Такая кнопка уже добавлена');
+            return;
+        }
+
+        // Создаем кнопку
+        const buttonData = {
+            id: 'btn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            text: text,
+            url: url,
+            type: type
+        };
+
+        this.messageButtons.push(buttonData);
+
+        // Закрываем диалог
+        document.querySelector('#customModalBackdrop')?.remove();
+
+        // Обновляем интерфейс
+        this.renderMessageButtons();
+
+        this.parent.addToLog(`Добавлена кнопка: "${text}" (${type}: ${url})`);
+    }
+
+    /**
      * ПОЛУЧИТЬ ПРЕВЬЮ КЛАВИАТУРЫ В ТЕКСТОВОМ ВИДЕ
      */
     getKeyboardPreview() {
@@ -218,5 +329,34 @@ class TelegramButtons {
         }
 
         return preview;
+    }
+
+    /**
+     * ПОКАЗАТЬ ПРЕВЬЮ КЛАВИАТУРЫ
+     */
+    showButtonPreview() {
+        const preview = this.getKeyboardPreview();
+
+        const content = `
+            <div style="text-align: center;">
+                <h4 style="margin-bottom: 15px;">👀 Предпросмотр клавиатуры</h4>
+                ${this.messageButtons.length > 0 ?
+                    `<div style="margin-bottom: 15px;">
+                        <strong>${this.messageButtons.length} кнопок добавлено</strong>
+                    </div>` :
+                    `<div style="margin-bottom: 15px; color: var(--accent-error);">
+                        <strong>Нет добавленных кнопок</strong>
+                    </div>`
+                }
+                <pre style="background: var(--bg-primary); padding: 15px; border-radius: 5px; border: 1px solid var(--border); font-family: monospace; white-space: pre-wrap; text-align: left; color: var(--text-primary); margin-bottom: 15px;">
+${preview}
+                </pre>
+                <div style="color: var(--text-secondary); font-size: 11px;">
+                    Так будет выглядеть клавиатура в Telegram
+                </div>
+            </div>
+        `;
+
+        this.parent.showCustomModal('👀 Предпросмотр', content);
     }
 }

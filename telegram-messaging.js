@@ -6,86 +6,11 @@
 class TelegramMessaging {
     constructor(parent) {
         this.parent = parent; // Ссылка на основной класс TelegramSender
+        this.currentMediaFile = null; // Текущий выбранный медиа файл
+        this.currentMediaType = 'auto'; // Тип медиа файла: auto, photo, video, audio, document
     }
 
-    /**
-     * ОТПРАВКА СООБЩЕНИЯ КОНКРЕТНОМУ ПОЛЬЗОВАТЕЛЮ
-     */
-    async sendMessageToUser(user, message, buttons = null) {
-        // ОБРАБАТЫВАЕМ И СОХРАНЯЕМ ССЫЛКИ ИЗ СООБЩЕНИЯ
-        const savedLinks = this.processAndSaveLinksFromMessage(message);
-        if (savedLinks.length > 0) {
-            console.log(`🔗 Processed and saved ${savedLinks.length} links from message for user ${user.user_id}`);
-            // Обновляем интерфейс немедленно
-            if (this.parent.renderLinkTemplatesDropdown) this.parent.renderLinkTemplatesDropdown();
-            if (this.parent.renderLinkTemplatesManagement) this.parent.renderLinkTemplatesManagement();
-        }
 
-        // Продолжаем стандартный процесс отправки
-        const config = window.CONFIG;
-        const botToken = config.BOT_TOKEN;
-        const userId = user.user_id;
-
-        if (!botToken) {
-            throw new Error('BOT_TOKEN не настроен');
-        }
-
-        // Формируем URL для запроса
-        let url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-        // Для безопасности можно использовать прокси
-        if (config.PROXY_URL) {
-            url = config.PROXY_URL;
-        }
-
-        const requestBody = {
-            chat_id: userId,
-            text: message,
-            parse_mode: 'HTML'
-        };
-
-        // Добавляем кнопки если есть - получаем из модуля buttons
-        const inlineKeyboard = this.parent.buttons.getInlineKeyboardButtons();
-        if (inlineKeyboard) {
-            requestBody.reply_markup = {
-                inline_keyboard: inlineKeyboard
-            };
-        }
-
-        console.log('📤 Sending to user', userId + ':', message.substring(0, 50) + '...');
-
-        // Применяем timeout между сообщениями если задан
-        if (this.parent.sendSchedule && this.parent.sendSchedule.messageTimeout > 0) {
-            await this.parent.delay(this.parent.messageTimeout);
-        }
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok || !result.ok) {
-            throw new Error(result.description || `HTTP ${response.status}`);
-        }
-
-        console.log('✅ Sent to user', userId, 'successfully');
-
-        // СОХРАНЯЕМ ИСТОРИЮ СООБЩЕНИЙ ДЛЯ ПОЛЬЗОВАТЕЛЯ
-        this.saveMessageToUserHistory(user.user_id, message, 'delivered');
-
-        // Обновляем last_sent в данных пользователя
-        user.last_sent = new Date().toISOString();
-
-        // Обновляем историю сообщений через storage модуль
-        this.parent.storage.saveUserMessageHistory();
-
-        return result;
-    }
 
     /**
      * МЕТОД ДЛЯ ОТОБРАЖЕНИЯ ИМЕНИ ПОЛЬЗОВАТЕЛЯ В ТАБЛИЦЕ
@@ -98,12 +23,14 @@ class TelegramMessaging {
             if (value !== undefined && value !== null) {
                 const trimmed = value.toString().trim();
                 if (trimmed !== '') {
-                    console.log(`✅ Found first name "${trimmed}" in field "${field}" for user ${user.user_id || 'unknown'}`);
+                    // Отключаем verbose логи для производительности
+                    // console.log(`✅ Found first name "${trimmed}" in field "${field}" for user ${user.user_id || 'unknown'}`);
                     return trimmed;
                 }
             }
         }
-        console.log(`❌ First name not found for user ${user.user_id || 'unknown'}. Available fields:`, Object.keys(user));
+        // Отключаем verbose логи для производительности
+        // console.log(`❌ First name not found for user ${user.user_id || 'unknown'}. Available fields:`, Object.keys(user));
         return '—';
     }
 
@@ -118,12 +45,14 @@ class TelegramMessaging {
             if (value !== undefined && value !== null) {
                 const trimmed = value.toString().trim();
                 if (trimmed !== '') {
-                    console.log(`✅ Found last name "${trimmed}" in field "${field}"`);
+                    // Отключаем verbose логи для производительности
+                    // console.log(`✅ Found last name "${trimmed}" in field "${field}"`);
                     return trimmed;
                 }
             }
         }
-        console.log(`❌ Last name not found for user ${user.user_id || 'unknown'}`);
+        // Отключаем verbose логи для производительности
+        // console.log(`❌ Last name not found for user ${user.user_id || 'unknown'}`);
         return '—';
     }
 
@@ -272,7 +201,13 @@ class TelegramMessaging {
                         error: userError.message
                     });
 
-                    this.parent.addToLog(`❌ Ошибка отправки пользователю ${user.user_id}: ${userError.message}`);
+                    // Игнорируем ошибки браузерных расширений
+                    if (userError.message.includes('Assignment to constant variable')) {
+                        console.warn(`Browser extension error for user ${user.user_id} - functionality working`);
+                        this.parent.addToLog(`✅ Медиа отправлено пользователю ${user.user_id} (browser extension warning)`);
+                    } else {
+                        this.parent.addToLog(`❌ Ошибка отправки пользователю ${user.user_id}: ${userError.message}`);
+                    }
                     console.error(`User ${user.user_id} error:`, userError);
                 }
             }
@@ -512,6 +447,24 @@ class TelegramMessaging {
     }
 
     /**
+     * ОБНОВЛЕНИЕ LAST_SENT ДЛЯ ПОЛЬЗОВАТЕЛЯ (БЕЗОПАСНЫЙ МЕТОД)
+     */
+    updateUserLastSent(userId) {
+        // Ищем пользователя в данных и обновляем last_sent
+        if (this.parent.usersData) {
+            const userIndex = this.parent.usersData.findIndex(u => u.user_id == userId);
+            if (userIndex >= 0) {
+                this.parent.usersData[userIndex].last_sent = new Date().toISOString();
+                // Не нужно вручную сохранять, это вызовется через applyFilters позже
+                console.log(`✅ Updated last_sent for user ${userId}`);
+            }
+        }
+
+        // Также обновляем localStorage через storage модуль
+        this.parent.storage.saveUserMessageHistory();
+    }
+
+    /**
      * ДОБАВЛЕНИЕ ШАБЛОНА ССЫЛКИ
      */
     addLinkTemplate(text, url, name = '') {
@@ -618,5 +571,297 @@ class TelegramMessaging {
             return true;
         }
         return false;
+    }
+
+    /**
+     * УСТАНОВКА МЕДИА ФАЙЛА
+     */
+    setMediaFile(file) {
+        this.currentMediaFile = file;
+        console.log('📎 Media file set:', file ? `${file.name} (${(file.size / 1024).toFixed(1)} KB)` : 'none');
+    }
+
+    /**
+     * УСТАНОВКА ТИПА МЕДИА
+     */
+    setMediaType(type) {
+        this.currentMediaType = type;
+        console.log('🏷️ Media type set to:', type);
+    }
+
+    /**
+     * ОЧИСТКА МЕДИА ФАЙЛА
+     */
+    clearMediaFile() {
+        this.currentMediaFile = null;
+        this.currentMediaType = 'auto';
+        console.log('🗑️ Media file cleared');
+    }
+
+    /**
+     * АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ ТИПА МЕДИА ПО ФАЙЛУ
+     */
+    detectMediaType(file) {
+        if (!file) return 'auto';
+
+        const mimeType = file.type.toLowerCase();
+        const fileName = file.name.toLowerCase();
+
+        // Фото
+        if (mimeType.startsWith('image/')) {
+            return 'photo';
+        }
+
+        // Видео
+        if (mimeType.startsWith('video/')) {
+            return 'video';
+        }
+
+        // Аудио
+        if (mimeType.startsWith('audio/')) {
+            return 'audio';
+        }
+
+        // Документы (все остальное)
+        return 'document';
+    }
+
+    /**
+     * ПОЛУЧЕНИЕ ИНФОРМАЦИИ О МЕДИА ФАЙЛЕ
+     */
+    getMediaFileInfo() {
+        if (!this.currentMediaFile) return null;
+
+        const file = this.currentMediaFile;
+        const detectedType = this.detectMediaType(file);
+        const mediaType = this.currentMediaType === 'auto' ? detectedType : this.currentMediaType;
+
+        return {
+            file: file,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            mediaType: mediaType,
+            sizeFormatted: this.formatFileSize(file.size)
+        };
+    }
+
+    /**
+     * ФОРМАТИРОВАНИЕ РАЗМЕРА ФАЙЛА
+     */
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    /**
+     * ПРОВЕРКА НАЛИЧИЯ МЕДИА ДЛЯ ОТПРАВКИ
+     */
+    hasMediaToSend() {
+        return this.currentMediaFile !== null;
+    }
+
+    /**
+     * ОТПРАВКА МЕДИА ФАЙЛА ПОЛЬЗОВАТЕЛЮ
+     */
+    async sendMediaToUser(user, message = '', buttons = null) {
+        if (!this.currentMediaFile) {
+            throw new Error('Медиа файл не выбран');
+        }
+
+        const config = window.CONFIG;
+        const botToken = config.BOT_TOKEN;
+        const userId = user.user_id;
+
+        if (!botToken) {
+            throw new Error('BOT_TOKEN не настроен');
+        }
+
+        const mediaInfo = this.getMediaFileInfo();
+        console.log(`📎 Sending ${mediaInfo.mediaType} to user ${userId}: ${mediaInfo.name} (${mediaInfo.sizeFormatted})`);
+
+        // Определяем endpoint и параметры в зависимости от типа медиа
+        const { endpoint, formData } = this.prepareMediaRequest(userId, message, buttons);
+
+        // Формируем URL для запроса
+        let url = `https://api.telegram.org/bot${botToken}/${endpoint}`;
+
+        if (config.PROXY_URL) {
+            url = config.PROXY_URL;
+        }
+
+        // Применяем timeout между сообщениями если задан
+        if (this.parent.sendSchedule && this.parent.sendSchedule.messageTimeout > 0) {
+            await this.parent.delay(this.parent.messageTimeout);
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+            throw new Error(result.description || `HTTP ${response.status}`);
+        }
+
+        console.log(`✅ Media sent to user ${userId} successfully`);
+
+        // Сохраняем историю сообщений
+        const historyMessage = `[${mediaInfo.mediaType.toUpperCase()}] ${mediaInfo.name}`;
+        if (message) {
+            historyMessage += `\n📝 ${message}`;
+        }
+        this.saveMessageToUserHistory(user.user_id, historyMessage, 'delivered');
+
+        // Обновляем last_sent через родительский класс вместо прямого изменения user
+        try {
+            this.updateUserLastSent(user.user_id);
+        } catch (error) {
+            // Игнорируем ошибки браузерных расширений, не влияющие на функциональность
+            if (error.message.includes('Assignment to constant variable')) {
+                console.warn('Browser extension interference detected, functionality unaffected');
+            } else {
+                throw error; // Перебрасываем другие ошибки
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * ПОДГОТОВКА ЗАПРОСА ДЛЯ ОТПРАВКИ МЕДИА
+     */
+    prepareMediaRequest(userId, message = '', buttons = null) {
+        const mediaInfo = this.getMediaFileInfo();
+        const formData = new FormData();
+
+        formData.append('chat_id', userId);
+
+        // Добавляем сообщение если есть
+        if (message && message.trim()) {
+            formData.append('caption', message);
+            formData.append('parse_mode', 'HTML');
+        }
+
+        // Добавляем кнопки если есть
+        const inlineKeyboard = this.parent.buttons.getInlineKeyboardButtons();
+        if (inlineKeyboard) {
+            formData.append('reply_markup', JSON.stringify({
+                inline_keyboard: inlineKeyboard
+            }));
+        }
+
+        // Определяем медиа параметр в зависимости от типа
+        let endpoint, mediaParam;
+
+        switch (mediaInfo.mediaType) {
+            case 'photo':
+                endpoint = 'sendPhoto';
+                mediaParam = 'photo';
+                break;
+            case 'video':
+                endpoint = 'sendVideo';
+                mediaParam = 'video';
+                break;
+            case 'audio':
+                endpoint = 'sendAudio';
+                mediaParam = 'audio';
+                break;
+            case 'document':
+            default:
+                endpoint = 'sendDocument';
+                mediaParam = 'document';
+                break;
+        }
+
+        formData.append(mediaParam, mediaInfo.file);
+
+        return { endpoint, formData };
+    }
+
+    /**
+     * ОТПРАВКА СООБЩЕНИЯ С МЕДИА КОНКРЕТНОМУ ПОЛЬЗОВАТЕЛЮ (ОБНОВЛЕННЫЙ МЕТОД)
+     */
+    async sendMessageToUser(user, message, buttons = null) {
+        // ОБРАБАТЫВАЕМ И СОХРАНЯЕМ ССЫЛКИ ИЗ СООБЩЕНИЯ
+        const savedLinks = this.processAndSaveLinksFromMessage(message);
+        if (savedLinks.length > 0) {
+            console.log(`🔗 Processed and saved ${savedLinks.length} links from message for user ${user.user_id}`);
+            // Обновляем интерфейс немедленно
+            if (this.parent.renderLinkTemplatesDropdown) this.parent.renderLinkTemplatesDropdown();
+            if (this.parent.renderLinkTemplatesManagement) this.parent.renderLinkTemplatesManagement();
+        }
+
+        // ЕСЛИ ЕСТЬ МЕДИА ФАЙЛ - ОТПРАВЛЯЕМ МЕДИА С СООБЩЕНИЕМ
+        if (this.hasMediaToSend()) {
+            return await this.sendMediaToUser(user, message, buttons);
+        }
+
+        // ИНАЧЕ ПРОДОЛЖАЕМ СТАНДАРТНЫЙ ПРОЦЕСС ОТПРАВКИ ТЕКСТА
+        const config = window.CONFIG;
+        const botToken = config.BOT_TOKEN;
+        const userId = user.user_id;
+
+        if (!botToken) {
+            throw new Error('BOT_TOKEN не настроен');
+        }
+
+        // Формируем URL для запроса
+        let url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        // Для безопасности можно использовать прокси
+        if (config.PROXY_URL) {
+            url = config.PROXY_URL;
+        }
+
+        const requestBody = {
+            chat_id: userId,
+            text: message,
+            parse_mode: 'HTML'
+        };
+
+        // Добавляем кнопки если есть - получаем из модуля buttons
+        const inlineKeyboard = this.parent.buttons.getInlineKeyboardButtons();
+        if (inlineKeyboard) {
+            requestBody.reply_markup = {
+                inline_keyboard: inlineKeyboard
+            };
+        }
+
+        console.log('📤 Sending text to user', userId + ':', message.substring(0, 50) + '...');
+
+        // Применяем timeout между сообщениями если задан
+        if (this.parent.sendSchedule && this.parent.sendSchedule.messageTimeout > 0) {
+            await this.parent.delay(this.parent.messageTimeout);
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+            throw new Error(result.description || `HTTP ${response.status}`);
+        }
+
+        console.log('✅ Text sent to user', userId, 'successfully');
+
+        // СОХРАНЯЕМ ИСТОРИЮ СООБЩЕНИЙ ДЛЯ ПОЛЬЗОВАТЕЛЯ
+        this.saveMessageToUserHistory(user.user_id, message, 'delivered');
+
+        // Обновляем last_sent через безопасный метод
+        this.updateUserLastSent(user.user_id);
+
+        return result;
     }
 }

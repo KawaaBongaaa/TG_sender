@@ -16,6 +16,13 @@ class TelegramStorage {
      */
     loadTemplates() {
         try {
+            // Проверяем доступность localStorage перед загрузкой
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - шаблоны не загружены');
+                this.sender.templates = [];
+                return;
+            }
+
             const data = localStorage.getItem('telegram_sender_templates');
             this.sender.templates = data ? JSON.parse(data) : [];
             console.log('📋 Loaded templates:', this.sender.templates.length);
@@ -30,6 +37,12 @@ class TelegramStorage {
      */
     loadLinkTemplates() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - шаблоны ссылок не загружены');
+                this.sender.linkTemplates = [];
+                return;
+            }
+
             const data = localStorage.getItem('telegram_sender_link_templates');
             this.sender.linkTemplates = data ? JSON.parse(data) : [];
             console.log('🔗 Loaded link templates:', this.sender.linkTemplates.length);
@@ -44,6 +57,12 @@ class TelegramStorage {
      */
     loadBots() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - боты не загружены');
+                this.sender.bots = [];
+                return;
+            }
+
             const data = localStorage.getItem('telegram_sender_bots');
             this.sender.bots = data ? JSON.parse(data) : [];
             console.log('🤖 Loaded bots:', this.sender.bots.length);
@@ -58,6 +77,12 @@ class TelegramStorage {
      */
     loadBroadcastHistory() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - история рассылок не загружена');
+                this.sender.broadcastHistory = [];
+                return;
+            }
+
             const data = localStorage.getItem('telegram_sender_history');
             this.sender.broadcastHistory = data ? JSON.parse(data) : [];
             console.log('📜 Loaded broadcast history:', this.sender.broadcastHistory.length, 'entries');
@@ -72,6 +97,12 @@ class TelegramStorage {
      */
     loadUserMessageHistory() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - история пользователей не загружена');
+                this.sender.userMessageHistory = {};
+                return;
+            }
+
             const data = localStorage.getItem('telegram_sender_user_history');
             this.sender.userMessageHistory = data ? JSON.parse(data) : {};
             console.log('💬 Loaded user message history for', Object.keys(this.sender.userMessageHistory).length, 'users');
@@ -86,6 +117,11 @@ class TelegramStorage {
      */
     loadSoundSettings() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - настройки звука не загружены');
+                return;
+            }
+
             const data = localStorage.getItem('telegram_sender_sound_settings');
             this.sender.notificationSoundSettings = data ? JSON.parse(data) : {
                 frequency: 800,
@@ -110,6 +146,11 @@ class TelegramStorage {
      */
     loadSavedTheme() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - тема не загружена');
+                return;
+            }
+
             const theme = localStorage.getItem('telegram_sender_theme') || 'light';
             this.sender.setTheme(theme);
             // Устанавливаем селектор на сохраненное значение
@@ -128,6 +169,12 @@ class TelegramStorage {
      */
     loadLinkAutoSave() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - настройка автосохранения по умолчанию');
+                this.sender.linkAutoSave = true;
+                return;
+            }
+
             const saved = localStorage.getItem('telegram_sender_link_autosave');
             this.sender.linkAutoSave = saved ? JSON.parse(saved) : true;
             console.log('🔄 Link auto-save setting loaded:', this.sender.linkAutoSave);
@@ -156,6 +203,10 @@ class TelegramStorage {
      */
     saveTemplates() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - шаблоны не сохранены');
+                return;
+            }
             localStorage.setItem('telegram_sender_templates', JSON.stringify(this.sender.templates));
             console.log('💾 Templates saved');
         } catch (error) {
@@ -168,6 +219,10 @@ class TelegramStorage {
      */
     saveLinkTemplates() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - шаблоны ссылок не сохранены');
+                return;
+            }
             localStorage.setItem('telegram_sender_link_templates', JSON.stringify(this.sender.linkTemplates));
             console.log('💾 Link templates saved');
         } catch (error) {
@@ -180,6 +235,10 @@ class TelegramStorage {
      */
     saveBots() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - боты не сохранены');
+                return;
+            }
             localStorage.setItem('telegram_sender_bots', JSON.stringify(this.sender.bots));
             console.log('💾 Bots saved');
         } catch (error) {
@@ -192,6 +251,10 @@ class TelegramStorage {
      */
     saveBroadcastHistory() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - история рассылок не сохранена');
+                return;
+            }
             localStorage.setItem('telegram_sender_history', JSON.stringify(this.sender.broadcastHistory));
             console.log('💾 Broadcast history saved');
         } catch (error) {
@@ -204,6 +267,10 @@ class TelegramStorage {
      */
     saveUserMessageHistory() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - история пользователей не сохранена');
+                return;
+            }
             localStorage.setItem('telegram_sender_user_history', JSON.stringify(this.sender.userMessageHistory));
             console.log('💾 User message history saved');
         } catch (error) {
@@ -216,6 +283,10 @@ class TelegramStorage {
      */
     saveSoundSettings() {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - настройки звука не сохранены');
+                return;
+            }
             localStorage.setItem('telegram_sender_sound_settings', JSON.stringify(this.sender.notificationSoundSettings));
             console.log('💾 Sound settings saved');
         } catch (error) {
@@ -228,6 +299,10 @@ class TelegramStorage {
      */
     saveTheme(theme) {
         try {
+            if (!this.sender.localStorageAvailable) {
+                console.warn('⚠️ localStorage недоступен - тема не сохранена');
+                return;
+            }
             localStorage.setItem('telegram_sender_theme', theme);
             console.log('💾 Theme saved:', theme);
         } catch (error) {

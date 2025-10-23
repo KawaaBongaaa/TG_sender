@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
-    <title>📢 Telegram Sender - Панель рассылки</title>
+    <title>Telegram Sender - Панель рассылки</title>
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -20,79 +20,64 @@
     <div style="padding: 20px; font-family: monospace;">
         <h1>🚀 TELEGRAM SENDER</h1>
 
-        <!-- ШАПКА ПРИЛОЖЕНИЯ -->
-        <div class="toolbar">
-            <div class="toolbar-group">
-                <h1 style="margin: 0; font-size: 20px; font-weight: 600;">📢 Telegram Sender</h1>
-                <span class="badge badge-info" id="usersCountBadge">👥 0 пользователей</span>
-                <span class="badge badge-success" id="usersSelectedBadge">✅ Выбрано: 0</span>
-            </div>
-
-            <div class="toolbar-group">
-                <!-- ПЕРЕКЛЮЧАТЕЛЬ ТЕМ -->
-                <div class="theme-switcher">
-                    <button class="theme-option active" data-theme="light">
-                        ☀️ Светлая
-                    </button>
-                    <button class="theme-option" data-theme="dark">
-                        🌙 Темная
-                    </button>
-                    <button class="theme-option" data-theme="blue-cyan">
-                        ❄️ Голубая
-                    </button>
+        <!-- КОМПАКТНАЯ ШАПКА ПРИЛОЖЕНИЯ -->
+        <div class="compact-header">
+            <div class="compact-toolbar">
+                <h1 style="margin: 0; font-size: 18px; font-weight: 600;">📢 Telegram Sender</h1>
+                <div class="compact-stats">
+                    <span class="badge badge-info" id="usersCountBadge">👥 0</span>
+                    <span class="badge badge-success" id="usersSelectedBadge">✅ 0</span>
                 </div>
-
-                <div style="border-left: 1px solid var(--border); height: 24px; margin: 0 12px;"></div>
-
-
-                <button id="sendBtn" class="btn-modern btn-destructive-modern">
-                    <span>📤</span>
-                    Отправить
-                </button>
-                <button id="sendMassBtn" class="btn-modern btn-primary-modern">
-                    <span>📢</span>
-                    Массовая рассылка
-                </button>
+                <div class="compact-theme-switcher">
+                    <button class="theme-btn active" data-theme="light" title="Светлая тема">☀️</button>
+                    <button class="theme-btn" data-theme="dark" title="Темная тема">🌙</button>
+                    <button class="theme-btn" data-theme="blue-cyan" title="Голубая тема">❄️</button>
+                </div>
             </div>
         </div>
 
-        <!-- ОСНОВНАЯ СЕТКА (2x2) -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+    <!-- МАСТЕР НАСТРОЙКИ ШАБЛОНА РАССЫЛКИ -->
+    <div id="broadcastWizard" class="wizard-modal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2004; background: var(--bg-primary); border-radius: var(--radius-lg); padding: var(--space-2xl); max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-2xl); border: none; margin: 0; display: none;">
+        <div class="wizard-header">
+            <h4 class="wizard-title">📢 Настройка шаблона рассылки</h4>
+            <button class="wizard-close-btn" onclick="document.getElementById('broadcastWizard').style.display='none'">×</button>
+        </div>
 
-            <!-- ЛЕВАЯ КОЛОНКА -->
+        <div style="margin-bottom: 20px;">
+            <label style="color: var(--text-primary);"><strong>📝 Название рассылки:</strong></label><br>
+            <input type="text" id="broadcastTemplateName" placeholder="Например: Акция Новый Год" style="width: 100%; margin: 8px 0; padding: 10px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px;">
+        </div>
 
-            <!-- СЕКЦИЯ УПРАВЛЕНИЯ БОТАМИ -->
-            <div class="section-blue" style="padding: 15px; border: 2px solid var(--text-accent); border-radius: 10px; background: var(--bg-secondary);">
-                <h3 style="margin: 0 0 12px 0; color: var(--text-accent);">🤖 Боты</h3>
+        <div style="margin-bottom: 20px;">
+            <label style="color: var(--text-primary);"><strong>🔄 Максимальное количество повторов:</strong></label><br>
+            <input type="number" id="broadcastTemplateMaxRepeats" value="3" min="1" max="10" style="width: 100%; margin: 8px 0; padding: 10px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px;">
+            <small style="color: var(--text-secondary);">Указывает, сколько раз разрешено получать эту рассылку (1-10)</small>
+        </div>
 
-                <div style="margin-bottom: 8px;">
-                    <select id="botsList" style="width: 100%; margin: 3px 0; padding: 6px;">
-                        <option value="">-- Выберите бота --</option>
-                    </select>
-                </div>
+        <div style="margin-bottom: 20px;">
+            <label style="color: var(--text-primary);"><strong>📅 Минимальный интервал между отправками:</strong></label><br>
+            <input type="number" id="broadcastTemplateMinDays" value="30" min="0" max="365" style="width: 100%; margin: 8px 0; padding: 10px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px;">
+            <small style="color: var(--text-secondary);">Дни между повторными отправками этой рассылки (0 = без ограничений)</small>
+        </div>
 
-                <div style="margin-bottom: 8px;">
-                    <select id="sheetsList" style="width: 100%; margin: 3px 0; padding: 6px;">
-                        <option value="">-- Выберите таблицу --</option>
-                    </select>
-                </div>
+        <div style="margin-bottom: 20px;">
+            <label style="color: var(--text-primary);"><strong>💬 Описание/комментарий:</strong></label><br>
+            <textarea id="broadcastTemplateDescription" placeholder="Опишите цель рассылки..." rows="3" style="width: 100%; margin: 8px 0; padding: 10px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; resize: vertical;"></textarea>
+        </div>
 
-                <div style="display: flex; gap: 5px;">
-                    <button id="editBotsBtn" style="flex: 1; padding: 6px; background: var(--accent-primary); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">⚙️ Боты</button>
-                    <button id="editSheetsBtn" style="flex: 1; padding: 6px; background: var(--accent-warning); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📊 Таблицы</button>
-                </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <button id="cancelBroadcastWizardBtn" style="padding: 10px 20px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">❌ Отмена</button>
+            <button id="createBroadcastTemplateBtn" style="padding: 10px 20px; background: var(--accent-success); color: var(--text-inverse); border: none; border-radius: 8px; cursor: pointer;">✅ Создать шаблон</button>
+        </div>
+    </div>
 
-
-
-                <div id="currentBotInfo" style="margin-top: 10px; padding: 5px; background: var(--bg-tertiary); border-radius: 5px; font-size: 11px; color: var(--text-primary); border: 1px solid var(--border);">
-                    Нет выбранного бота
-                </div>
-            </div>
+    <div id="modalBackdrop" class="modal-backdrop">
+        <!-- Модальные окна -->
+    </div>
 
     <!-- ВСПЛЫВАЮЩИЕ МОДАЛЬНЫЕ ОКНА -->
-
-    <!-- ФОРМА УПРАВЛЕНИЯ БОТАМИ -->
     <div id="modalBackdrop" class="modal-backdrop">
+        <!-- ФОРМА УПРАВЛЕНИЯ БОТАМИ -->
         <div class="wizard-modal" id="botsWizard" style="display: none;">
             <div class="wizard-header">
                 <h4 class="wizard-title">🤖 Управление ботами</h4>
@@ -123,166 +108,42 @@
             </div>
             </div>
 
-            <!-- МАСТЕР НАСТРОЙКИ ТАБЛИЦ -->
-            <div id="sheetsWizard" class="wizard-modal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2001; background: var(--bg-primary); border-radius: var(--radius-lg); padding: var(--space-2xl); max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-2xl); border: none; margin: 0; display: none;">
+            <!-- ФОРМА УПРАВЛЕНИЯ ТАБЛИЦАМИ -->
+            <div class="wizard-modal" id="sheetsWizard" style="display: none;">
                 <div class="wizard-header">
                     <h4 class="wizard-title">📊 Управление таблицами</h4>
-                    <button class="wizard-close-btn" id="closeSheetsWizardBtn" onclick="telegramSender.closeAllModals()">×</button>
+                    <button class="wizard-close-btn" onclick="telegramSender.closeAllModals()">×</button>
                 </div>
 
-                <div id="sheetsWizardHeader" style="margin: 20px 0 15px 0; padding: 8px; background: var(--bg-primary); border-radius: 5px; color: var(--text-primary); border: 1px solid var(--border);">
-                    Для бота: Нет выбранного бота
-                </div>
-
-                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                    <div style="flex: 1;">
-                        <label style="color: var(--text-primary);">Название таблицы:</label><br>
-                        <input type="text" id="newSheetName" placeholder="Активные пользователи" style="width: 100%; margin: 5px 0; padding: 6px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+                    <div id="sheetsWizardHeader" style="margin-bottom: 15px; padding: 8px; background: var(--bg-primary); border-radius: 5px; color: var(--text-primary); border: 1px solid var(--border);">
+                        Сначала выберите бота
                     </div>
-                    <div style="flex: 2;">
-                        <label style="color: var(--text-primary);">Google Sheet ID:</label><br>
-                        <input type="text" id="newSheetId" placeholder="2PACX-...-stcQAl7vvV0tgUTsKTHaOFmqF" style="width: 100%; margin: 5px 0; padding: 6px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+
+                    <h4 style="margin: 0 0 15px 0; color: var(--text-accent);">➕ Добавить новую таблицу</h4>
+
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <div style="flex: 1;">
+                            <label style="color: var(--text-primary);">Название таблицы:</label><br>
+                            <input type="text" id="newSheetName" placeholder="Активные пользователи" style="width: 100%; margin: 5px 0; padding: 8px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="color: var(--text-primary);">Google Sheet ID:</label><br>
+                            <input type="text" id="newSheetId" placeholder="2PACX-...-stcQAl7vvV0tgUTsKTHaOFmqF" style="width: 100%; margin: 5px 0; padding: 8px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px;">
+                        </div>
                     </div>
-                </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
-                    <button id="addSheetBtn" style="padding: 10px 20px; background: var(--accent-warning); color: var(--text-inverse); border: none; border-radius: 8px; cursor: pointer;">➕ Добавить таблицу</button>
-                </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <button id="addSheetBtn" style="padding: 10px 20px; background: var(--accent-success); color: var(--text-inverse); border: none; border-radius: 8px; cursor: pointer;">➕ Добавить</button>
+                        <button id="cancelSheetsWizardBtn" style="padding: 10px 20px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">❌ Отмена</button>
+                    </div>
 
-                <h4 style="margin: 25px 0 10px 0; color: var(--text-accent); padding-top: 20px; border-top: 1px solid var(--border);">📋 Таблицы бота</h4>
-                <div id="sheetsListContainer" style="max-height: 150px; overflow-y: auto;">
-                    Сначала выберите бота
+                    <h4 style="margin: 25px 0 10px 0; color: var(--text-accent); padding-top: 20px; border-top: 1px solid var(--border);">📋 Таблицы бота</h4>
+                    <div id="sheetsListContainer" style="max-height: 200px; overflow-y: auto;">
+                        Сначала выберите бота
+                    </div>
                 </div>
             </div>
 
-            <!-- СЕКЦИЯ ПЛАНИРОВЩИКА -->
-            <div class="section-info" style="padding: 15px; border: 2px solid var(--text-info); border-radius: 10px; background: var(--bg-secondary);">
-                <h3 style="margin: 0 0 12px 0; color: var(--text-info);">⏰ Планировщик</h3>
-
-                <div style="margin-bottom: 8px;">
-                    <input type="datetime-local" id="scheduleDateTime" style="width: 100%; padding: 6px; font-size: 12px;">
-                    <div style="display: flex; gap: 5px; margin-top: 4px;">
-                        <button id="scheduleBroadcastBtn" style="flex: 1; padding: 6px; font-size: 12px;">⏰ Запланировать</button>
-                        <button id="cancelScheduleBtn" style="flex: 1; padding: 6px; font-size: 12px; background: #dc3545;">❌ Отменить</button>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 8px;">
-                    <label style="font-size: 12px;">Таймаут (мс):</label><br>
-                    <input type="number" id="messageTimeoutInput" value="1000" min="0" max="30000" step="500" style="width: 80px; padding: 4px; font-size: 12px; margin: 2px 0;">
-                    <button id="setTimeoutBtn" style="padding: 3px 8px; font-size: 12px;">🔧</button>
-                </div>
-            </div>
-
-            <!-- ПРАВАЯ КОЛОНКА -->
-
-            <!-- СЕКЦИЯ ФИЛЬТРОВ -->
-            <div class="section-red" style="padding: 15px; border: 2px solid var(--accent-error); border-radius: 10px; background: var(--destructive-bg); color: var(--accent-error);">
-                <h3 style="margin: 0 0 12px 0; color: var(--accent-error);">🔍 Фильтры</h3>
-
-                <div style="margin-bottom: 8px;">
-                    <label style="font-size: 12px; font-weight: bold;">Статусы:</label><br>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 3px;">
-                        <label style="font-size: 11px;"><input type="checkbox" id="statusTrial"> trial</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="statusNewSub"> new_sub</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="statusCanceled"> canceled</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="statusKicked"> kicked</label>
-                    </div>
-                    <label style="font-size: 11px; margin-top: 4px;"><input type="checkbox" id="invertStatus"> Исключить</label>
-                </div>
-
-                <div style="margin-bottom: 8px;">
-                    <label style="font-size: 12px; font-weight: bold;">Языки:</label><br>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 3px;">
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageEn"> EN</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageRu"> RU</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageDe"> DE</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageFr"> FR</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageEs"> ES</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageIt"> IT</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languagePt"> PT</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languagePl"> PL</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageTr"> TR</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageZh"> ZH</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageJa"> JA</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageKo"> KO</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageAr"> AR</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageHi"> HI</label>
-                        <label style="font-size: 11px;"><input type="checkbox" id="languageOther"> Другие</label>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 5px; margin-top: 6px;">
-                    <input id="tagFilter" placeholder="Тег" style="flex: 1; padding: 4px; font-size: 12px;">
-                    <input id="searchFilter" placeholder="Поиск" style="flex: 1; padding: 4px; font-size: 12px;">
-                </div>
-
-                <div style="display: flex; gap: 5px; margin-top: 6px;">
-                    <button id="resetFilters" style="flex: 1; padding: 4px; font-size: 12px;">🔄 Сброс</button>
-                    <button id="selectAllStatuses" style="flex: 1; padding: 4px; font-size: 12px;">✅ Все</button>
-                </div>
-            </div>
-
-            <!-- ОБЪЕДИНЕННЫЙ МОДУЛЬ СООБЩЕНИЙ И ШАБЛОНОВ -->
-            <div class="section-green" style="padding: 15px; border: 2px solid var(--accent-success); border-radius: 10px; background: var(--success-bg);">
-                <h3 style="margin: 0 0 12px 0; color: var(--accent-success);">✉️ Сообщения и шаблоны</h3>
-
-                <!-- ВНУТРЕННЕЕ РАЗДЕЛЕНИЕ: СНАЧАЛА СООБЩЕНИЕ -->
-                <div style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: var(--border);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h4 style="margin: 0; font-size: 13px; color: var(--accent-success);">📝 Текст сообщения</h4>
-                        <button id="insertLinkBtn" style="padding: 3px 8px; font-size: 11px; background: var(--text-accent); color: var(--text-inverse); border: none; border-radius: 4px; cursor: pointer;">🔗 Вставка ссылки</button>
-                    </div>
-                    <textarea id="messageInput" rows="2" cols="50" placeholder="Введите текст для рассылки..." style="width: 100%; resize: vertical; min-height: 60px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);"></textarea>
-                </div>
-
-                <!-- INLINE КНОПКИ -->
-                <div style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: var(--border);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h4 style="margin: 0; font-size: 13px; color: var(--accent-success);">🔘 Inline кнопки</h4>
-                        <small style="color: var(--text-tertiary); font-size: 11px;">(опционально, максимум 10)</small>
-                    </div>
-
-                    <!-- Добавление новой кнопки -->
-                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                        <input type="text" id="newButtonText" placeholder="Текст кнопки" style="flex: 1; padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
-                        <input type="text" id="newButtonUrl" placeholder="URL или callback_data" style="flex: 1; padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
-                        <select id="newButtonType" style="padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
-                            <option value="url">URL</option>
-                            <option value="callback">Callback</option>
-                        </select>
-                        <button id="addButton" style="padding: 4px 8px; font-size: 11px; background: var(--accent-success); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer;">➕</button>
-                    </div>
-
-                    <!-- СписоОп добавленных кнопок -->
-                    <div id="buttonsList" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 80px; overflow-y: auto;">
-                        <!-- Кнопки будут добавляться сюда -->
-                    </div>
-
-                    <!-- Очистить все кнопки -->
-                    <div style="margin-top: 8px;">
-                        <button id="clearButtons" style="padding: 3px 8px; font-size: 10px; background: var(--accent-error); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer;">🗑️ Очистить кнопки</button>
-                    <button id="previewButtons" style="padding: 3px 8px; font-size: 10px; background: var(--accent-info); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer; margin-left: 4px;">👁️ Preview</button>
-                    </div>
-                </div>
-
-                <!-- ПОТОМ ШАБЛОНЫ -->
-                <div>
-                    <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--accent-success);">📋 Шаблоны</h4>
-
-                    <div style="margin-bottom: 8px;">
-                        <select id="templateSelect" style="width: 100%; margin: 3px 0; padding: 6px; font-size: 12px;">
-                            <option value="">-- Выберите шаблон --</option>
-                        </select>
-                    </div>
-
-                    <button id="editTemplatesBtn" style="width: 100%; padding: 6px; font-size: 12px;">✏️ Настройки шаблонов</button>
-                </div>
-            </div>
-
-        </div>
-
-        </div>
 
         <!-- МИНИ-ПАНЕЛЬ ВТОРОСТЕПЕННЫХ ФУНКЦИЙ (В САМОМ НИЗУ) -->
         <div style="margin: 30px 0 10px 0; padding: 8px; border-top: 2px solid #dee2e6; background: #f8f9fa; border-radius: 6px;">
@@ -301,14 +162,18 @@
                 </div>
             </div>
 
-            <!-- КОМПАКТНАЯ СТРОКА ЭКСПОРТА/ИМПОРТА -->
+            <!-- КОМПАКТНАЯ СТРОКА ЭКСПОРТА/ИМПОРТА И ДИАГНОСТИКИ -->
             <div style="display: flex; align-items: center; gap: 8px;">
                 <small style="font-size: 10px; color: #6c757d; font-weight: bold;">📄</small>
                 <div style="display: flex; gap: 2px; flex: 1;">
                     <button id="exportHistoryCSVBtn" style="padding: 2px 6px; font-size: 9px; min-width: auto;">CSV</button>
                     <button id="exportHistoryPDFBtn" style="padding: 2px 6px; font-size: 9px; min-width: auto;">PDF</button>
+                    <button id="runLocalStorageDiagnostic" style="padding: 2px 6px; font-size: 9px; min-width: auto; background: #17a2b8; color: white;">💾</button>
                     <input type="file" id="importUsersFile" accept=".csv" style="flex: 2; margin: 0; font-size: 9px; padding: 2px 4px; height: 20px; border-radius: 3px;">
                     <button id="importUsersBtn" style="padding: 2px 6px; font-size: 9px; min-width: auto;">📥</button>
+                </div>
+                <div id="localStorageStatus" style="padding: 2px 4px; background: #e0f9e0; border-radius: 2px; font-size: 8px; color: black; margin-left: auto;">
+                    ✅ OK
                 </div>
             </div>
 
@@ -476,63 +341,6 @@
             </div>
         </div>
 
-        <!-- ПРАВАЯ ДОПОЛНИТЕЛЬНАЯ КОЛОНКА С СЧЕТЧИКАМИ И ЛОГОМ -->
-        <div style="margin: 20px 0;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
-                    <div id="usersCount" style="font-weight: bold; flex: 1;">
-                        👥 <span>Пользователей: 0</span>
-                        <div id="usersSelectedInfo" style="color: #007bff; font-size: 14px; margin-top: 5px;">Выбрано: 0</div>
-                        <div style="text-align: center; color: var(--text-secondary); margin-top: 10px; font-weight: normal;">
-                            💡 Нажмите "📄 История" в таблице для просмотра всех данных пользователя
-                        </div>
-                    </div>
-
-                <div style="text-align: right;">
-                    <button id="selectAllUsersBtn" style="padding: 5px 10px;">✅ Выбрать все</button>
-                    <button id="clearUsersSelectionBtn" style="padding: 5px 10px; margin-left: 5px;">❌ Снять выбор</button>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin: 20px 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0;">👥 Пользователи:</h3>
-                <div>
-                    <button id="selectAllUsersBtn" style="padding: 5px 10px; margin-left: 10px;">✅ Выбрать все</button>
-                    <button id="clearUsersSelectionBtn" style="padding: 5px 10px; margin-left: 5px;">❌ Снять выбор</button>
-                </div>
-            </div>
-
-            <div style="max-height: 400px; overflow: auto; border: 2px solid #e9ecef; border-radius: 8px; background: white;">
-                        <table id="usersTable" style="width: 100%; min-width: 1200px; border-collapse: collapse; font-size: 12px;">
-                            <thead>
-                                <tr style="background: var(--bg-secondary); position: sticky; top: 0; z-index: 1;">
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px; text-align: left; width: 30px;">
-                                        <input type="checkbox" id="masterUserCheckbox" style="transform: scale(1.1);">
-                                    </th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="user_id">🆔 ID</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="first_name">👤 Имя</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="last_name">👤 Фамилия</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="username">👥 Username</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="status">📊 Статус</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="language">🌍 Язык</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="premium">⭐ Премиум</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="traffic_from">🚦 Источник</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="trial_img_gen_calls">🎨 Triall Calls</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="tag">🏷️ Тег</th>
-                                    <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="last_sent">📅 Последняя отправка</th>
-                                </tr>
-                            </thead>
-                    <tbody id="usersTableBody">
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px; color: #6c757d;">
-                                🔄 Загрузка данных пользователей...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
         <div id="logContainer" style="margin: 20px 0; background: #f8f9fa; padding: 10px; max-height: 200px; overflow-y: auto; font-size: 12px; color: #333; border: 1px solid #dee2e6; border-radius: 4px;">
             <strong>Лог действий:</strong><br>
@@ -650,29 +458,299 @@
     <!-- Конфигурация -->
     <script src="./config.js"></script>
 
+    <!-- НОВАЯ КОМПАКТНАЯ СЕТКА ИНТЕРФЕЙСА -->
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin: 20px 0;">
+
+        <!-- ЛЕВАЯ КОЛОНКА: Боты + Мини модуль пользователей -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- СЕКЦИЯ УПРАВЛЕНИЯ БОТАМИ -->
+            <div class="section-blue" style="padding: 15px; border: 2px solid var(--text-accent); border-radius: 10px; background: var(--bg-secondary);">
+                <h3 style="margin: 0 0 12px 0; color: var(--text-accent);">🤖 Боты</h3>
+
+                <div style="margin-bottom: 8px;">
+                    <select id="botsList" style="width: 100%; margin: 3px 0; padding: 6px;">
+                        <option value="">-- Выберите бота --</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 8px;">
+                    <select id="sheetsList" style="width: 100%; margin: 3px 0; padding: 6px;">
+                        <option value="">-- Выберите таблицу --</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 5px;">
+                    <button id="loadUsersBtn" style="flex: 1; padding: 6px; background: var(--accent-info); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">📥 Загрузить пользователей</button>
+                    <button id="editBotsBtn" style="flex: 1; padding: 6px; background: var(--accent-primary); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">⚙️</button>
+                    <button id="editSheetsBtn" style="flex: 1; padding: 6px; background: var(--accent-warning); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📊</button>
+                </div>
+
+                <div id="currentBotInfo" style="margin-top: 10px; padding: 5px; background: var(--bg-tertiary); border-radius: 5px; font-size: 11px; color: var(--text-primary); border: 1px solid var(--border);">
+                    Нет выбранного бота
+                </div>
+            </div>
+
+            <!-- ОБЪЕДИНЕННЫЙ КОМПАКТНЫЙ МОДУЛЬ ПОЛЬЗОВАТЕЛЕЙ -->
+            <div class="section-accent" style="padding: 15px; border: 2px solid var(--accent-primary); border-radius: 10px; background: var(--accent-bg);">
+                <h3 style="margin: 0 0 12px 0; color: var(--accent-primary);">👥 Пользователи + фильтры</h3>
+
+                <!-- КНОПКИ УПРАВЛЕНИЯ СЛЕВА -->
+                <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+                    <button id="selectAllUsersBtn" style="flex: 1; padding: 4px; font-size: 11px; background: var(--accent-primary); color: var(--text-inverse); border: none; border-radius: 4px; cursor: pointer;">✅ Все</button>
+                    <button id="clearUsersSelectionBtn" style="flex: 1; padding: 4px; font-size: 11px; background: var(--accent-error); color: var(--text-inverse); border: none; border-radius: 4px; cursor: pointer;">❌ Снять</button>
+                </div>
+
+
+
+                <!-- ТАБЫ: Все / Списки -->
+                <div style="display: flex; gap: 2px; margin-bottom: 8px; background: var(--bg-secondary); border-radius: 4px; padding: 2px;">
+                    <button id="usersTabAll" style="flex: 1; padding: 6px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 3px; cursor: pointer;" onclick="showUsersTab('all')">Все</button>
+                    <button id="usersTabLists" style="flex: 1; padding: 6px; font-size: 11px; background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid transparent; border-radius: 3px; cursor: pointer;" onclick="showUsersTab('lists')">Списки</button>
+                </div>
+
+                <!-- КОНТЕНТ ВКЛАДОК -->
+                <div id="usersTabContent">
+                    <!-- ФИЛЬТРЫ (АКТИВНАЯ ВКЛАДКА) -->
+                    <div id="usersFiltersTab" style="display: block;">
+                        <h4 style="margin: 8px 0 6px 0; font-size: 12px; color: var(--accent-primary);">🔍 Фильтры:</h4>
+
+                        <div style="margin-bottom: 6px;">
+                            <input id="searchFilter" placeholder="Поиск..." style="width: 100%; padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+                        </div>
+
+                        <div style="display: flex; gap: 2px; margin-bottom: 6px;">
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 1px; margin-bottom: 6px;">
+                            <label style="font-size: 10px;"><input type="checkbox" id="statusTrial" style="transform: scale(0.8);"> trial</label>
+                            <label style="font-size: 10px;"><input type="checkbox" id="statusNewSub" style="transform: scale(0.8);"> new_sub</label>
+                            <label style="font-size: 10px;"><input type="checkbox" id="statusCanceled" style="transform: scale(0.8);"> canceled</label>
+                            <label style="font-size: 10px;"><input type="checkbox" id="statusKicked" style="transform: scale(0.8);"> kicked</label>
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 1px; margin-bottom: 6px;">
+                            <h5 style="margin: 8px 0 4px 0; font-size: 11px; color: var(--accent-primary); width: 100%;">🌍 Языки:</h5>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageRu" style="transform: scale(0.8);"> RU</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageEn" style="transform: scale(0.8);"> EN</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageEs" style="transform: scale(0.8);"> ES</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageFr" style="transform: scale(0.8);"> FR</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageDe" style="transform: scale(0.8);"> DE</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageIt" style="transform: scale(0.8);"> IT</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languagePt" style="transform: scale(0.8);"> PT</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageZh" style="transform: scale(0.8);"> ZH</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageAr" style="transform: scale(0.8);"> AR</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageJa" style="transform: scale(0.8);"> JA</label>
+                        </div>
+
+                        <div style="margin-bottom: 6px;">
+                            <label style="font-size: 10px; color: var(--text-secondary);">Другой язык:</label>
+                            <input id="customLanguageFilter" placeholder="Например: uk, pl, ko" style="width: 100%; padding: 2px; font-size: 10px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 1px; margin-bottom: 6px;">
+                            <h5 style="margin: 8px 0 4px 0; font-size: 11px; color: var(--accent-primary); width: 100%;">🎨 Trial Calls:</h5>
+                            <label style="font-size: 9px;"><input type="checkbox" id="trialCallsLess0" style="transform: scale(0.8);"> <0</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="trialCallsLess5" style="transform: scale(0.8);"> <5</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="trialCallsMid" style="transform: scale(0.8);"> 0-20</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="trialCallsGreater20" style="transform: scale(0.8);"> >20</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="trialCallsEquals20" style="transform: scale(0.8);"> =20</label>
+                        </div>
+
+                        <div style="display: flex; gap: 1px;">
+                            <button id="selectAllStatuses" style="flex: 1; padding: 3px; font-size: 10px; background: var(--accent-secondary); color: var(--text-inverse); border: none; border-radius: 2px; cursor: pointer;">Все</button>
+                            <button id="resetFilters" style="flex: 1; padding: 3px; font-size: 10px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 2px; cursor: pointer;">Сброс</button>
+                        </div>
+                    </div>
+
+                    <!-- СПИСКИ ПОЛЬЗОВАТЕЛЕЙ -->
+                    <div id="usersListsTab" style="display: none;">
+                        <h4 style="margin: 8px 0 6px 0; font-size: 12px; color: var(--accent-primary);">📋 Списки:</h4>
+                        <div id="userListsContainerCompact" style="max-height: 120px; overflow-y: auto;">
+                            Загрузка...
+                        </div>
+                        <div style="display: flex; gap: 2px; margin-top: 6px;">
+                            <button id="saveToListBtn" style="flex: 1; padding: 4px; font-size: 10px; background: var(--accent-primary); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer;">💾</button>
+                            <button id="manageListsBtn" style="flex: 1; padding: 4px; font-size: 10px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 3px; cursor: pointer;">⚙️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- МИНИ-ТАБЛИЦА ПОЛЬЗОВАТЕЛЕЙ -->
+                <div style="margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px;">
+                    <h4 style="margin: 6px 0 8px 0; font-size: 12px; color: var(--accent-primary);">📋 Выбранные:</h4>
+                    <div id="selectedUsersMiniList" style="max-height: 100px; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; padding: 4px;">
+                        <div style="color: var(--text-secondary); font-size: 11px;">Нет выбранных пользователей</div>
+                    </div>
+                    <button onclick="expandUsersTable()" style="width: 100%; margin-top: 6px; padding: 4px; font-size: 11px; background: var(--text-accent); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer;">🔍 Развернуть таблицу</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА: Объединенный модуль сообщений -->
+        <div>
+
+            <!-- ОБЪЕДИНЕННЫЙ МОДУЛЬ СООБЩЕНИЙ, ШАБЛОНОВ И ПЛАНИРОВЩИКА -->
+            <div class="section-green" style="padding: 15px; border: 2px solid var(--accent-success); border-radius: 10px; background: var(--success-bg);">
+                <h3 style="margin: 0 0 12px 0; color: var(--accent-success);">✉️ Сообщения, шаблоны и планировщик</h3>
+
+                <!-- НАЗВАНИЕ РАССЫЛКИ -->
+                <div style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: var(--border);">
+                    <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--accent-success);">📢 Название рассылки</h4>
+                    <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                        <input type="text" id="broadcastNameInput" placeholder="Например: Акция Новый Год" style="flex: 1; padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+                        <button id="saveBroadcastTemplateBtn" style="padding: 4px 8px; font-size: 11px; background: var(--accent-secondary); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer;">💾 Сохранить как шаблон</button>
+                    </div>
+                    <select id="broadcastTemplateSelect" style="width: 100%; padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+                        <option value="">-- Выбрать шаблон рассылки --</option>
+                    </select>
+                </div>
+
+                <!-- ТЕКСТ СООБЩЕНИЯ -->
+                <div style="margin-bottom: 15px; padding-bottom: 12px; border-bottom: var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h4 style="margin: 0; font-size: 13px; color: var(--accent-success);">📝 Сообщение</h4>
+                        <button id="insertLinkBtn" style="padding: 3px 8px; font-size: 11px; background: var(--text-accent); color: var(--text-inverse); border: none; border-radius: 4px; cursor: pointer;">🔗 Ссылка</button>
+                    </div>
+                    <textarea id="messageInput" rows="3" placeholder="Текст для рассылки..." style="width: 100%; resize: vertical; min-height: 70px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);"></textarea>
+                </div>
+
+                <!-- INLINE КНОПКИ И МЕДИА -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: var(--border);">
+                    <div>
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--accent-success);">🔘 Кнопки</h4>
+                        <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                            <input type="text" id="newButtonText" placeholder="Текст" style="flex: 1; padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border);">
+                            <input type="text" id="newButtonUrl" placeholder="URL" style="flex: 1; padding: 4px; font-size: 11px;">
+                        </div>
+                        <button id="addButton" style="width: 100%; padding: 4px; font-size: 11px; background: var(--accent-success); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer;">➕ Кнопка</button>
+                        <div id="buttonsList" style="margin-top: 4px; max-height: 60px; overflow-y: auto;"></div>
+                        <button id="clearButtons" style="width: 100%; margin-top: 4px; padding: 3px; font-size: 10px; background: var(--accent-error); color: var(--text-inverse); border: none; border-radius: 2px; cursor: pointer;">🗑️ Очистить</button>
+                    </div>
+
+                    <div>
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--accent-success);">📎 Медиа</h4>
+                        <input type="file" id="mediaFileInput" accept="image/*,video/*,audio/*,application/*" style="width: 100%; padding: 4px; font-size: 11px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 3px;">
+                        <select id="mediaTypeSelect" style="width: 100%; margin: 4px 0; padding: 4px; font-size: 11px;">
+                            <option value="auto">Авто</option>
+                            <option value="photo">Фото</option>
+                            <option value="video">Видео</option>
+                            <option value="audio">Аудио</option>
+                            <option value="document">Документ</option>
+                        </select>
+                        <button id="clearMediaBtn" style="width: 100%; padding: 3px; font-size: 10px; background: var(--accent-error); color: var(--text-inverse); border: none; border-radius: 2px; cursor: pointer;">🗑️ Очистить</button>
+                        <div id="mediaPreview" style="margin-top: 4px; padding: 4px; background: var(--bg-secondary); border-radius: 3px; display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- ШАБЛОНЫ И ПЛАНИРОВЩИК -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: var(--border);">
+                    <div>
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--accent-success);">📋 Шаблоны</h4>
+                        <select id="templateSelect" style="width: 100%; padding: 4px; font-size: 11px;">
+                            <option value="">-- Выбрать --</option>
+                        </select>
+                        <button id="editTemplatesBtn" style="width: 100%; margin-top: 4px; padding: 4px; font-size: 11px; background: var(--accent-secondary); color: var(--text-inverse); border: none; border-radius: 3px; cursor: pointer;">⚙️ Настройка</button>
+                    </div>
+
+                    <div>
+                        <h4 style="margin: 0 0 8px 0; font-size: 13px; color: var(--accent-success);">⏰ Планировщик</h4>
+                        <input type="datetime-local" id="scheduleDateTime" style="width: 100%; padding: 4px; font-size: 11px;">
+                        <input type="number" id="messageTimeoutInput" value="1000" min="0" max="30000" step="500" style="width: 100%; margin: 4px 0; padding: 4px; font-size: 11px;">
+                        <div style="display: flex; gap: 2px;">
+                            <button id="scheduleBroadcastBtn" style="flex: 1; padding: 3px; font-size: 10px;">📅</button>
+                            <button id="cancelScheduleBtn" style="flex: 1; padding: 3px; font-size: 10px; background: #dc3545;">❌</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- КНОПКИ ДЕЙСТВИЙ -->
+                <div style="display: flex; gap: 8px;">
+                    <button id="sendBtn" style="flex: 1; padding: 8px; background: var(--accent-destructive); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                        📤 Тест
+                    </button>
+                    <button id="sendMassBtn" style="flex: 1; padding: 8px; background: var(--accent-primary); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                        📢 Рассылка
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- РАСШИРЕННАЯ ПОЛНАЯ ТАБЛИЦА ПОЛЬЗОВАТЕЛЕЙ (СКРЫТА ПО УМОЛЧАНИЮ) -->
+    <div id="expandedUsersTable" style="margin: 20px 0; display: none;">
+        <div style="background: var(--bg-secondary); padding: 12px; border: 2px solid var(--accent-primary); border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0; color: var(--accent-primary);">👥 Полная таблица пользователей</h3>
+                <button onclick="collapseUsersTable()" style="padding: 6px 12px; background: var(--accent-error); color: var(--text-inverse); border: none; border-radius: 6px; cursor: pointer;">✖ Свернуть</button>
+            </div>
+
+            <div style="max-height: 400px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                <table id="usersTable" style="width: 100%; min-width: 1200px; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background: var(--bg-secondary); position: sticky; top: 0; z-index: 1;">
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px; text-align: left; width: 30px;">
+                                <input type="checkbox" id="masterUserCheckbox" style="transform: scale(1.1);">
+                            </th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="user_id">🆔 ID</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="first_name">👤 Имя</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="last_name">👤 Фамилия</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="username">👥 Username</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="status">📊 Статус</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="language">🌍 Язык</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="premium">⭐ Премиум</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="traffic_from">🚦 Источник</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="trial_img_gen_calls">🎨 Triall Calls</th>
+                            <th style="border-bottom: 2px solid var(--border); padding: 8px 4px;" class="sortable" data-sort="last_sent">📅 Последняя отправка</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="11" style="text-align: center; padding: 40px; color: #6c757d;">
+                                🔄 Загрузка данных пользователей...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="logContainer" style="margin: 20px 0; background: #f8f9fa; padding: 10px; max-height: 200px; overflow-y: auto; font-size: 12px; color: #333; border: 1px solid #dee2e6; border-radius: 4px;">
+        <strong>Лог действий:</strong><br>
+    </div>
+
+    <!-- ВСПЛЫВАЮЩИЕ МОДАЛЬНЫЕ ОКНА -->
+
+    <!-- ФОРМА УПРАВЛЕНИЯ БОТАМИ (СКРЫТА) -->
+    <!-- СЕКЦИЯ ПЛАНИРОВЩИКА (ПЕРЕМЕЩЕНА В ОСНОВНОЙ МОДУЛЬ) -->
+    <!-- СЕКЦИЯ СПИСКОВ ПОЛЬЗОВАТЕЛЕЙ (ИНТЕГРИРОВАНА) -->
+    <!-- СЕКЦИЯ ФИЛЬТРОВ (ИНТЕГРИРОВАНА) -->
+    <!-- ОБЪЕДИНЕННЫЙ МОДУЛЬ СООБЩЕНИЙ И ШАБЛОНОВ (ПЕРЕДЕЛАН) -->
+
     <!-- Модули в правильном порядке загрузки -->
     <script src="./telegram-storage.js"></script>
-    <script src="./telegram-messaging.js"></script>
-    <script src="./telegram-users.js"></script>
+    <script src="./telegram-messaging-advanced.js"></script>
+    <script src="./telegram-users-advanced.js"></script>
+    <script src="./telegram-userlists.js"></script>
     <script src="./telegram-bots.js"></script>
-    <script src="./telegram-templates.js"></script>
     <script src="./telegram-links.js"></script>
     <script src="./telegram-buttons.js"></script>
     <script src="./telegram-settings.js"></script>
     <script src="./telegram-notifications.js"></script>
-    <script src="./telegram-scheduler.js"></script>
 
-    <!-- Переключатель тем с SVG иконками -->
+    <!-- Компактный переключатель тем и интерфейсные функции -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Переключатель тем с тематическими иконками и улучшенной анимацией
-        const themeButtons = document.querySelectorAll('.theme-option');
+        // Компактный переключатель тем
+        const themeButtons = document.querySelectorAll('.theme-btn');
 
         // Функция применения темы
         function applyTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
-
-            // Сохраняем выбор в localStorage
             localStorage.setItem('telegramSenderTheme', theme);
 
             // Визуальная обратная связь
@@ -684,7 +762,7 @@
                 }
             });
 
-            // Анимация переключения для логотипа и ключевых элементов
+            // Анимация логотипа
             const logo = document.querySelector('h1');
             if(logo) {
                 logo.style.animation = 'none';
@@ -699,39 +777,58 @@
                 const theme = this.dataset.theme;
                 applyTheme(theme);
 
-                // Показываем тост с подтверждением
-                if(window.showToast) {
-                    const themeNames = {
-                        'light': 'Светлая тема',
-                        'gray': 'Серая тема',
-                        'dark': 'Тёмная тема',
-                        'blue-cyan': 'Модная сине-голубая тема'
-                    };
-                    window.showToast(`${themeNames[theme] || 'Тема'} активирована`, 'info');
+                if(window.telegramSender && window.telegramSender.addToLog) {
+                    window.telegramSender.addToLog(`Тема изменена на ${theme}`);
                 }
             });
         });
 
         // Загружаем сохранённую тему
         const savedTheme = localStorage.getItem('telegramSenderTheme') || 'light';
-        if(savedTheme) {
-            applyTheme(savedTheme);
-        }
-
-        // Анимации для иконок тем
-        themeButtons.forEach(button => {
-            const icon = button.querySelector('svg');
-            if(icon) {
-                button.addEventListener('mouseenter', () => {
-                    icon.style.transform = 'scale(1.1) rotate(5deg)';
-                });
-                button.addEventListener('mouseleave', () => {
-                    icon.style.transform = 'scale(1) rotate(0deg)';
-                });
-            }
-        });
-
+        applyTheme(savedTheme);
     });
+
+    // ФУНКЦИИ ДЛЯ РАБОТЫ С КОМПАКТНЫМ ИНТЕРФЕЙСОМ
+    function showUsersTab(tab) {
+        const filtersTab = document.getElementById('usersFiltersTab');
+        const listsTab = document.getElementById('usersListsTab');
+        const tabAll = document.getElementById('usersTabAll');
+        const tabLists = document.getElementById('usersTabLists');
+
+        if (tab === 'all') {
+            filtersTab.style.display = 'block';
+            listsTab.style.display = 'none';
+            tabAll.style.background = 'var(--bg-primary)';
+            tabAll.style.color = 'var(--text-primary)';
+            tabAll.style.border = '1px solid var(--border)';
+            tabLists.style.background = 'var(--bg-tertiary)';
+            tabLists.style.color = 'var(--text-secondary)';
+            tabLists.style.border = '1px solid transparent';
+        } else {
+            filtersTab.style.display = 'none';
+            listsTab.style.display = 'block';
+            tabLists.style.background = 'var(--bg-primary)';
+            tabLists.style.color = 'var(--text-primary)';
+            tabLists.style.border = '1px solid var(--border)';
+            tabAll.style.background = 'var(--bg-tertiary)';
+            tabAll.style.color = 'var(--text-secondary)';
+            tabAll.style.border = '1px solid transparent';
+        }
+    }
+
+    function expandUsersTable() {
+        document.getElementById('expandedUsersTable').style.display = 'block';
+        document.getElementById('expandedUsersTable').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function collapseUsersTable() {
+        document.getElementById('expandedUsersTable').style.display = 'none';
+    }
+
+    // ДОБАВЛЯЕМ ФУНКЦИИ В ГЛОБАЛЬНУЮ ОБЛАСТЬ
+    window.showUsersTab = showUsersTab;
+    window.expandUsersTable = expandUsersTable;
+    window.collapseUsersTable = collapseUsersTable;
     </script>
 
     <script src="./app.js"></script>

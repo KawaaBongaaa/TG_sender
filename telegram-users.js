@@ -16,8 +16,12 @@ class TelegramUsers {
 
         const config = window.CONFIG;
 
-        if (!config || !config.SHEET_ID) {
-            throw new Error('CONFIG.SHEET_ID не настроен! Заполните config.js');
+        // Проверка настроек бота и таблицы
+        if (!this.hasBotAndSheetConfigured()) {
+            console.log('⚠️ No bot/sheet configuration found in localStorage');
+            this.parent.showStatus('Настройки бота и таблицы не найдены. Настройте через ⚙️', 'warning');
+            this.parent.addToLog('❌ Не настроены бот и таблица - данные не загружены');
+            return;
         }
 
         try {
@@ -61,6 +65,12 @@ class TelegramUsers {
             // Применяем фильтры и обновляем интерфейс
             this.applyFilters();
             this.updateUsersCount();
+
+            // Синхронизируем списки пользователей с обновленными данными
+            if (this.parent.userLists) {
+                this.parent.userLists.syncWithUserData();
+                console.log('📋 User lists synchronized with fresh data');
+            }
 
             this.parent.showStatus(`Загружено ${this.parent.usersData.length} пользователей`, 'success');
 
@@ -166,6 +176,26 @@ class TelegramUsers {
             }
         });
 
+        // Получаем выбранные фильтры Trial Calls
+        const selectedTrialFilters = [];
+        const trialFilterCheckboxes = ['trialCallsLess0', 'trialCallsLess5', 'trialCallsMid', 'trialCallsGreater20', 'trialCallsEquals20'];
+        trialFilterCheckboxes.forEach(filterId => {
+            const checkbox = document.getElementById(filterId);
+            if (checkbox && checkbox.checked) {
+                selectedTrialFilters.push(filterId.replace('trialCalls', '').toLowerCase());
+            }
+        });
+
+        // Получаем выбранные фильтры по дате
+        const selectedDateFilters = [];
+        const dateFilterCheckboxes = ['dateToday', 'dateWeek', 'dateMonth', 'dateQuarter', 'dateYear', 'dateOld'];
+        dateFilterCheckboxes.forEach(filterId => {
+            const checkbox = document.getElementById(filterId);
+            if (checkbox && checkbox.checked) {
+                selectedDateFilters.push(filterId.replace('date', '').toLowerCase());
+            }
+        });
+
         console.log('🔍 Applying filters:', {
             searchFilter,
             selectedStatuses,
@@ -174,18 +204,36 @@ class TelegramUsers {
         });
 
         this.parent.filteredUsers = this.parent.usersData.filter(user => {
-            // ТЕКСТОВЫЙ ПОИСК
-            if (searchFilter) {
-                const searchText = [
-                    user.user_id,
-                    user.username || '',
-                    user.first_name || '',
-                    user.last_name || '',
-                    user.tag || '',
-                    user.status || ''
-                ].join(' ').toLowerCase();
+            // ТЕКСТОВЫЙ ПОИСК - УЛУЧШЕННАЯ ВЕРСИЯ
+            if (searchFilter && searchFilter.trim()) {
+                const query = searchFilter.trim().toLowerCase();
 
-                if (!searchText.includes(searchFilter)) {
+                // Собираем все текстовые поля пользователя для поиска
+                const searchableFields = [
+                    String(user.user_id || ''),
+                    String(user.username || ''),
+                    String(user.first_name || ''),
+                    String(user.last_name || ''),
+                    String(user.tag || ''),
+                    String(user.status || ''),
+                    String(user.language || ''),
+                    String(user.email || ''),
+                    String(user.phone || ''),
+                    String(user.premium || ''),
+                    String(user.traffic_from || ''),
+                    String(user.trial_calls || ''),
+                    // Преобразуем объект пользователя в строку всех значений для полнотекстового поиска
+                    Object.values(user).filter(val => val !== null && val !== undefined).join(' ')
+                ];
+
+                const searchableText = searchableFields.join(' ').toLowerCase();
+
+                // Используем более надежное сравнение - проверяем содержит ли текст запрос
+                const matches = searchableText.includes(query);
+
+
+
+                if (!matches) {
                     return false;
                 }
             }
@@ -240,6 +288,150 @@ class TelegramUsers {
                 }
 
                 if (!langMatches) {
+                    return false;
+                }
+            }
+
+            // ФИЛЬТР ПО TRIAL CALLS - если выбраны фильтры, проверяем численное значение
+            if (selectedTrialFilters.length > 0) {
+                // Проверяем различные возможные поля для trial calls
+                const trialCallsFields = ['trial_img_gen_calls', 'triall img gen calls', 'trial_calls', 'trial_img_calls', 'img_gen_calls', 'trial', 'trial_gen_calls', 'img_calls', 'gen_calls'];
+                let trialCallsValue = null;
+                let foundField = '';
+                let rawValue = '';
+
+                for (const field of trialCallsFields) {
+                    if (user[field] !== undefined && user[field] !== '' && user[field] !== null) {
+                        rawValue = user[field];
+                        const cleanValue = String(rawValue).trim().replace(/[^\d.-]/g, '');
+                        const parsed = parseFloat(cleanValue);
+                        if (!isNaN(parsed)) {
+                            trialCallsValue = parsed;
+                            foundField = field;
+                            break;
+                        }
+                    }
+                }
+
+                // Логирование для отладки
+                console.log(`🎨 Trial filter for user ${user.user_id}:`, {
+                    field: foundField,
+                    rawValue: rawValue,
+                    parsedValue: trialCallsValue,
+                    selectedFilters: selectedTrialFilters,
+                    allFields: Object.keys(user).filter(k => k.includes('trial') || k.includes('img') || k.includes('gen') || k.includes('call')).slice(0, 5) // Показать потенциально релевантные поля
+                });
+
+                if (!foundField || trialCallsValue === null) {
+                    // Если фильтр выбран, но поле не найдено - исключаем пользователя
+                    console.warn(`❌ Trial calls field not found for user ${user.user_id}. Available trial-related fields:`,
+                        Object.keys(user).filter(k => k.toLowerCase().includes('trial') || k.toLowerCase().includes('img') || k.toLowerCase().includes('gen') || k.toLowerCase().includes('call'))
+                    );
+                    return false;
+                }
+
+                let trialMatches = false;
+
+                for (const filter of selectedTrialFilters) {
+                    if (filter === 'less0' && trialCallsValue < 0) {
+                        trialMatches = true;
+                        console.log(`✅ User ${user.user_id} matches filter 'less0': ${trialCallsValue} < 0`);
+                        break;
+                    }
+                    if (filter === 'less5' && trialCallsValue < 5) {
+                        trialMatches = true;
+                        console.log(`✅ User ${user.user_id} matches filter 'less5': ${trialCallsValue} < 5`);
+                        break;
+                    }
+                    if (filter === 'mid' && trialCallsValue > 0 && trialCallsValue < 19.9) {
+                        trialMatches = true;
+                        console.log(`✅ User ${user.user_id} matches filter 'mid': 0 < ${trialCallsValue} < 19.9`);
+                        break;
+                    }
+                    if (filter === 'greater20' && trialCallsValue > 20.1) {
+                        trialMatches = true;
+                        console.log(`✅ User ${user.user_id} matches filter 'greater20': ${trialCallsValue} > 20.1`);
+                        break;
+                    }
+                    if (filter === 'equals20' && Math.abs(trialCallsValue - 20) < 0.01) {
+                        trialMatches = true;
+                        console.log(`✅ User ${user.user_id} matches filter 'equals20': ${trialCallsValue} ≈ 20`);
+                        break;
+                    }
+                }
+
+                if (trialMatches) {
+                    console.log(`🎯 User ${user.user_id} PASSED trial calls filter (value: ${trialCallsValue}, filters: ${selectedTrialFilters.join(', ')})`);
+                } else {
+                    console.log(`❌ User ${user.user_id} FAILED trial calls filter (value: ${trialCallsValue}, filters: ${selectedTrialFilters.join(', ')})`);
+                    return false;
+                }
+            }
+
+            // ФИЛЬТР ПО ДАТЕ ДОБАВЛЕНИЯ - если выбраны фильтры, проверяем дату
+            if (selectedDateFilters.length > 0) {
+                // Ищем дату в возможных полях
+                const dateFields = ['date_added', 'created_at', 'registration_date', 'join_date', 'added_date', 'first_seen', 'date', 'created', 'timestamp', 'time'];
+                let userDateStr = '';
+                let foundDateField = '';
+
+                for (const field of dateFields) {
+                    if (user[field] && user[field].toString().trim() !== '') {
+                        userDateStr = user[field].toString().trim();
+                        foundDateField = field;
+                        break;
+                    }
+                }
+
+                // Если дата не найдена, исключаем пользователя из фильтра
+                if (!userDateStr) {
+                    console.warn('Date field not found for user:', user.user_id, 'Available fields:', Object.keys(user));
+                    return false;
+                }
+
+                const userDate = this.parseDate(userDateStr);
+                if (!userDate) {
+                    console.warn('Date parsing failed for user:', user.user_id, 'Field:', foundDateField, 'Value:', userDateStr);
+                    return false;
+                }
+
+                const now = new Date();
+                const diffTime = now.getTime() - userDate.getTime();
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                // Для отладки: логируем даты
+                console.log(`User ${user.user_id}: date field "${foundDateField}", value "${userDateStr}", parsed ${userDate.toISOString()}, diff ${diffDays} days`);
+
+                let dateMatches = false;
+
+                for (const filter of selectedDateFilters) {
+                    if (filter === 'today' && diffDays === 0) {
+                        dateMatches = true;
+                        break;
+                    }
+                    if (filter === 'week' && diffDays >= 0 && diffDays <= 7) {
+                        dateMatches = true;
+                        break;
+                    }
+                    if (filter === 'month' && diffDays >= 0 && diffDays <= 30) {
+                        dateMatches = true;
+                        break;
+                    }
+                    if (filter === 'quarter' && diffDays >= 0 && diffDays <= 90) {
+                        dateMatches = true;
+                        break;
+                    }
+                    if (filter === 'year' && diffDays >= 0 && diffDays <= 365) {
+                        dateMatches = true;
+                        break;
+                    }
+                    if (filter === 'old' && diffDays > 365) {
+                        dateMatches = true;
+                        break;
+                    }
+                }
+
+                if (!dateMatches) {
                     return false;
                 }
             }
@@ -312,18 +504,18 @@ class TelegramUsers {
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        <strong style="color: #dc3545; background: #f8d7da; padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: bold;">${getPremiumDisplay(user)}</strong>
+                        <strong style="color: #dc3545; background: #f8d7da; padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: bold;">${user.premium ? 'PREMIUM' : 'STANDARD'}</strong>
                     </td>
                     <td style="text-align: center;">
-                        <strong style="color: #28a745; background: #d4edda; padding: 2px 6px; border-radius: 4px; display: inline-block;">${getTrafficSourceDisplay(user)}</strong>
+                        <strong style="color: #28a745; background: #d4edda; padding: 2px 6px; border-radius: 4px; display: inline-block;">${user.traffic_from || '—'}</strong>
                     </td>
                     <td style="text-align: center;">
                         <span style="background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; border: 2px solid #ff9900;">
-                            <strong>${getTrialCallsDisplay(user)}</strong>
+                            <strong>${user.trial_calls || user.trial_img_gen_calls || 0}</strong>
                         </span>
                     </td>
                     <td style="text-align: center;">
-                        ${getTagDisplay(user)}
+                        ${user.tag || ''}
                     </td>
                     <td style="text-align: center;">
                         <button onclick="showUserMessageHistory('${user.user_id}')" style="font-size: 11px; padding: 2px 4px; border: 1px solid #6c757d; border-radius: 3px; cursor: pointer; background: #f8f9fa; margin-right: 5px;">📄 История</button>
@@ -407,6 +599,11 @@ class TelegramUsers {
                 }
             }
         });
+
+        // ОБНОВЛЯЕМ ТАКЖЕ ПЛАВАЮЩИЕ СЧЕТЧИКИ
+        if (this.parent.updateFloatingCounters) {
+            this.parent.updateFloatingCounters();
+        }
     }
 
     /**
@@ -560,7 +757,9 @@ class TelegramUsers {
             'statusTrial', 'statusNewSub', 'statusCanceled', 'statusKicked', 'invertStatus', // Статусы
             'languageEn', 'languageRu', 'languageDe', 'languageFr', 'languageEs', 'languageIt',
             'languagePt', 'languagePl', 'languageTr', 'languageZh', 'languageJa', 'languageKo',
-            'languageAr', 'languageHi', 'languageOther' // Языки
+            'languageAr', 'languageHi', 'languageOther', // Языки
+            'trialCallsLess0', 'trialCallsLess5', 'trialCallsMid', 'trialCallsGreater20', 'trialCallsEquals20', // Trial Calls
+            'dateToday', 'dateWeek', 'dateMonth', 'dateQuarter', 'dateYear', 'dateOld' // Дата фильтры
         ];
 
         filters.forEach(filterId => {
@@ -579,7 +778,7 @@ class TelegramUsers {
         });
 
         // Кнопки управления фильтрами
-        const filterButtons = ['resetFilters', 'selectAllStatuses'];
+        const filterButtons = ['resetFilters', 'selectAllStatuses', 'checkDataFields'];
         filterButtons.forEach(btnId => {
             const button = document.getElementById(btnId);
             if (button) {
@@ -590,10 +789,19 @@ class TelegramUsers {
                         this.resetFilters();
                     } else if (btnId === 'selectAllStatuses') {
                         this.selectAllStatuses();
+                    } else if (btnId === 'checkDataFields') {
+                        this.getDataFieldInfo();
                     }
                 });
             }
         });
+
+        // Делаем функцию доступной глобально
+        window.checkDataFieldInfo = () => {
+            if (this.parent && this.parent.users && this.parent.users.getDataFieldInfo) {
+                this.parent.users.getDataFieldInfo();
+            }
+        };
 
         console.log('✅ Filter event listeners setup completed');
     }
@@ -629,6 +837,24 @@ class TelegramUsers {
             }
         });
 
+        // Сброс чекбоксов фильтров Trial Calls
+        const trialCallsCheckboxes = ['trialCallsLess0', 'trialCallsLess5', 'trialCallsMid', 'trialCallsGreater20', 'trialCallsEquals20'];
+        trialCallsCheckboxes.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.checked = false;
+            }
+        });
+
+        // Сброс чекбоксов фильтров по дате
+        const dateCheckboxes = ['dateToday', 'dateWeek', 'dateMonth', 'dateQuarter', 'dateYear', 'dateOld'];
+        dateCheckboxes.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.checked = false;
+            }
+        });
+
         this.applyFilters();
         this.parent.addToLog('Все фильтры сброшены');
         alert('Все фильтры сброшены!');
@@ -654,6 +880,248 @@ class TelegramUsers {
         this.applyFilters();
         this.parent.addToLog(`${isCurrentlyAllSelected ? 'Снята' : 'Установлена'} выборка всех статусов`);
     }
+
+    /**
+     * ПАРСИНГ ДАТЫ ИЗ РАЗЛИЧНЫХ ФОРМАТОВ
+     */
+    parseDate(dateStr) {
+        if (!dateStr || typeof dateStr !== 'string') {
+            return null;
+        }
+
+        const trimmed = dateStr.trim();
+
+        // Проверка на пустую строку
+        if (!trimmed) {
+            return null;
+        }
+
+        try {
+            // Попытка 1: Стандартный ISO формат (YYYY-MM-DDTHH:mm:ss.sssZ или YYYY-MM-DDTHH:mm:ss)
+            if (trimmed.includes('T') || (trimmed.match(/\d{4}-\d{2}-\d{2}/) && (trimmed.includes(':') || trimmed.endsWith('Z')))) {
+                const date = new Date(trimmed);
+                if (!isNaN(date.getTime())) {
+                    return date;
+                }
+            }
+
+            // Попытка 2: Формы вроде DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY, YYYY/MM/DD
+            const datePatterns = [
+                /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/, // DD/MM/YYYY или DD-MM-YYYY
+                /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/, // YYYY/MM/DD
+                /^(\d{1,2})[\/\-](\d{4})[\/\-](\d{1,2})$/, // MM/YYYY/DD (редко)
+            ];
+
+            for (const pattern of datePatterns) {
+                const match = trimmed.match(pattern);
+                if (match) {
+                    const [full, part1, part2, part3] = match;
+
+                    // Определяем порядок: DD/MM/YYYY или MM/DD/YYYY или YYYY/MM/DD
+                    if (part1 > 31 && part1 <= 9999) {
+                        // Первый компонент - год (YYYY/MM/DD или YYYY-MM-DD)
+                        return new Date(parseInt(part1), parseInt(part2) - 1, parseInt(part3));
+                    } else if (part2 > 12) {
+                        // Второй компонент > 12, значит первый - день, второй - год (неправильный формат)
+                        continue;
+                    } else if (part1 > 12) {
+                        // Первый компонент > 12, значит это день, формат DD/MM/YYYY
+                        return new Date(parseInt(part3), parseInt(part2) - 1, parseInt(part1));
+                    } else {
+                        // Первый компонент <= 12, пробуем MM/DD/YYYY сначала, потом DD/MM/YYYY
+                        const asMDY = new Date(parseInt(part3), parseInt(part1) - 1, parseInt(part2));
+                        const asDMY = new Date(parseInt(part3), parseInt(part2) - 1, parseInt(part1));
+
+                        // Простая эвристика: если месяц выглядит правдоподобно для MM/DD/YYYY, используем его
+                        if (parseInt(part1) <= 12 && parseInt(part2) <= 31) {
+                            return asDMY; // Предпочитаем формат, часто используемый в Европе/Азии
+                        }
+                        return asMDY;
+                    }
+                }
+            }
+
+            // Попытка 3: Только дата без времени (YYYY-MM-DD или DD-MM-YYYY)
+            if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [year, month, day] = trimmed.split('-').map(n => parseInt(n, 10));
+                if (year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month - 1, day);
+                }
+            }
+
+            // Попытка 4: Формат YYYYMMDD (без разделителей)
+            if (trimmed.match(/^\d{8}$/) && trimmed.length === 8) {
+                const year = parseInt(trimmed.substring(0, 4), 10);
+                const month = parseInt(trimmed.substring(4, 6), 10);
+                const day = parseInt(trimmed.substring(6, 8), 10);
+                if (year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                    return new Date(year, month - 1, day);
+                }
+            }
+
+            // Попытка 5: Unix timestamp (числовая строка)
+            if (trimmed.match(/^\d+$/) && trimmed.length >= 10) {
+                const timestamp = parseInt(trimmed, 10);
+                // Если timestamp кажется секундным (секунды с 1970), конвертируем в миллисекунды
+                const date = new Date(timestamp < 1e10 ? timestamp * 1000 : timestamp);
+                if (!isNaN(date.getTime()) && date.getFullYear() >= 1900 && date.getFullYear() <= 2100) {
+                    return date;
+                }
+            }
+
+            // Ничего не подошло
+            return null;
+
+        } catch (error) {
+            console.warn('Failed to parse date:', trimmed, error);
+            return null;
+        }
+    }
+
+    /**
+     * ДИАГНОСТИКА СТРУКТУРЫ ПОЛЕЙ ДАННЫХ
+     */
+    getDataFieldInfo() {
+        const fieldStats = {};
+
+        if (!this.parent.usersData || this.parent.usersData.length === 0) {
+            alert('❌ Нет загруженных данных пользователей');
+            return;
+        }
+
+        // Анализируем первые 5 пользователей для получения статистики
+        const sampleUsers = this.parent.usersData.slice(0, 5);
+
+        sampleUsers.forEach(user => {
+            Object.keys(user).forEach(field => {
+                if (!fieldStats[field]) {
+                    fieldStats[field] = {
+                        count: 0,
+                        hasValue: 0,
+                        sampleValues: []
+                    };
+                }
+
+                fieldStats[field].count++;
+
+                const value = user[field];
+                if (value !== undefined && value !== '' && value !== null) {
+                    fieldStats[field].hasValue++;
+
+                    // Собираем до 3 уникальных значений для примера
+                    if (fieldStats[field].sampleValues.length < 3 &&
+                        !fieldStats[field].sampleValues.includes(String(value))) {
+                        fieldStats[field].sampleValues.push(String(value));
+                    }
+                }
+            });
+        });
+
+        // Форматируем отчет
+        let report = `📊 АНАЛИЗ ПОЛЕЙ ДАННЫХ (${sampleUsers.length} пользователей)\n\n`;
+        report += 'Найденные поля и их заполненность:\n\n';
+
+        Object.keys(fieldStats).sort().forEach(field => {
+            const stat = fieldStats[field];
+            const fillRate = Math.round((stat.hasValue / stat.count) * 100);
+            report += `📍 ${field}\n`;
+            report += `   Заполнено: ${stat.hasValue}/${stat.count} (${fillRate}%)\n`;
+
+            if (stat.sampleValues.length > 0) {
+                report += `   Примеры: ${stat.sampleValues.slice(0, 3).join(', ')}\n`;
+            }
+            report += '\n';
+        });
+
+        // Специальные рекомендации
+        report += '🔍 РЕКОМЕНДАЦИИ ДЛЯ ФИЛЬТРОВ:\n\n';
+
+        // Для Trial Calls
+        const trialCallFields = ['trial_img_gen_calls', 'triall img gen calls', 'trial_calls', 'trial_img_calls', 'img_gen_calls', 'trial'];
+        const availableTrialFields = trialCallFields.filter(field => fieldStats[field]);
+
+        if (availableTrialFields.length > 0) {
+            report += `🎨 Trial Calls: Используются поля: ${availableTrialFields.join(', ')}\n`;
+        } else {
+            report += `🎨 Trial Calls: Поле не найдено! Возможные поля: ${trialCallFields.join(', ')}\n`;
+        }
+
+        // Для дат
+        const dateFields = ['date_added', 'created_at', 'registration_date', 'join_date', 'added_date', 'first_seen', 'date', 'created', 'timestamp', 'time'];
+        const availableDateFields = dateFields.filter(field => fieldStats[field]);
+
+        if (availableDateFields.length > 0) {
+            report += `📅 Дата фильтры: Используются поля: ${availableDateFields.join(', ')}\n`;
+        } else {
+            report += `📅 Дата фильтры: Поле не найдено! Возможные поля: ${dateFields.join(', ')}\n`;
+        }
+
+        // Выводим результаты
+        console.log(report);
+        alert(report);
+
+        // Также добавляем в лог приложения
+        this.parent.addToLog('🛠️ Создана диагностика полей данных (см. консоль)');
+    }
+
+
+
+    /**
+     * ПРОВЕРКА НАЛИЧИЯ НАСТРОЕННЫХ БОТА И ТАБЛИЦЫ
+     */
+    hasBotAndSheetConfigured() {
+        try {
+            // Проверяем наличие storage модуля
+            if (!this.parent.storage) {
+                console.log('❌ hasBotAndSheetConfigured: Storage not initialized');
+                return false;
+            }
+
+            // Проверяем наличие бота в storage
+            const botsDataStr = localStorage.getItem('telegram_sender_bots');
+            const botsData = botsDataStr ? JSON.parse(botsDataStr) : [];
+
+            const currentBotIdStr = localStorage.getItem('telegram_sender_current_bot');
+            const currentBotId = currentBotIdStr ? currentBotIdStr : null;
+
+            // Проверяем наличие таблицы
+            const sheetsDataStr = localStorage.getItem('telegram_sender_sheets');
+            const sheetsData = sheetsDataStr ? JSON.parse(sheetsDataStr) : [];
+
+            const currentSheetIdStr = localStorage.getItem('telegram_sender_current_sheet');
+            const currentSheetId = currentSheetIdStr ? currentSheetIdStr : null;
+
+            // Более детальная диагностика
+            console.log('🔍 DETAILED localStorage check:');
+            console.log('   Raw bots data:', botsDataStr ? botsDataStr.substring(0, 100) + '...' : 'null');
+            console.log('   Parsed bots data:', botsData);
+            console.log('   Current bot ID:', currentBotId);
+
+            console.log('   Raw sheets data:', sheetsDataStr ? sheetsDataStr.substring(0, 100) + '...' : 'null');
+            console.log('   Parsed sheets data:', sheetsData);
+            console.log('   Current sheet ID:', currentSheetId);
+
+            const hasBot = botsData && botsData.length > 0 && currentBotId;
+            const hasSheet = sheetsData && sheetsData.length > 0 && currentSheetId;
+
+            console.log('🔍 Bot and sheet configuration result:', {
+                botsCount: botsData?.length || 0,
+                hasBot: hasBot,
+                hasCurrentBotId: !!currentBotId,
+                sheetsCount: sheetsData?.length || 0,
+                hasSheet: hasSheet,
+                hasCurrentSheetId: !!currentSheetId,
+                overallResult: hasBot && hasSheet
+            });
+
+            return hasBot && hasSheet;
+        } catch (error) {
+            console.error('❌ Error in hasBotAndSheetConfigured:', error);
+            return false;
+        }
+    }
+
+
 
     /**
      * ПОЛУЧЕНИЕ СПИСКА ВЫБРАННЫХ ПОЛЬЗОВАТЕЛЕЙ
