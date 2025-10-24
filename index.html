@@ -835,17 +835,17 @@
 
     // ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ БОТАМИ В ЛИСТЕ
     function selectBotFromList(botId) {
-        if (window.telegramSender && window.telegramSender.botsModule) {
-            window.telegramSender.botsModule.selectBot(botId);
+        if (window.telegramSender?.modules?.bots) {
+            window.telegramSender.modules.bots.selectBot(botId);
             window.telegramSender.closeAllModals();
         }
     }
 
     function deleteBotFromList(botId) {
-        if (window.telegramSender && window.telegramSender.botsModule) {
+        if (window.telegramSender?.modules?.bots) {
             if (confirm('Удалить бота и все его таблицы?')) {
-                window.telegramSender.botsModule.deleteBot(botId);
-                window.telegramSender.botsModule.updateBotListContainer();
+                window.telegramSender.modules.bots.deleteBot(botId);
+                // updateBotListContainer уже вызывается в deleteBot() методе
             }
         }
     }
