@@ -214,6 +214,12 @@ class TelegramSender {
         this.bindStatusCheckbox('languageZh', () => this.applyFilters());
         this.bindStatusCheckbox('languageAr', () => this.applyFilters());
         this.bindStatusCheckbox('languageJa', () => this.applyFilters());
+        this.bindStatusCheckbox('languagePl', () => this.applyFilters());
+        this.bindStatusCheckbox('languageTr', () => this.applyFilters());
+        this.bindStatusCheckbox('languageKo', () => this.applyFilters());
+        this.bindStatusCheckbox('languageHi', () => this.applyFilters());
+        this.bindStatusCheckbox('languageFa', () => this.applyFilters());
+        this.bindStatusCheckbox('languageOther', () => this.applyFilters());
         this.bindInput('customLanguageFilter', (e) => this.applyFilters());
 
         // Настройки звука
@@ -507,7 +513,7 @@ class TelegramSender {
         const filters = [];
 
         // Проверяем чекбоксы популярных языков
-        const languageCheckboxes = ['languageRu', 'languageEn', 'languageEs', 'languageFr', 'languageDe', 'languageIt', 'languagePt', 'languageZh', 'languageAr', 'languageJa'];
+        const languageCheckboxes = ['languageRu', 'languageEn', 'languageEs', 'languageFr', 'languageDe', 'languageIt', 'languagePt', 'languageZh', 'languageAr', 'languageJa', 'languagePl', 'languageTr', 'languageKo', 'languageHi', 'languageFa', 'languageOther'];
         languageCheckboxes.forEach(id => {
             const cb = document.getElementById(id);
             if (cb?.checked) {

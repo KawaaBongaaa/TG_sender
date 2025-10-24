@@ -41,6 +41,10 @@ class TelegramBots {
         this.sender.bots.push(bot);
         this.saveBots();
 
+        // ✅ ДОБАВЛЯЕМ ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
+        this.updateBotSelectionUI();
+        this.updateBotListContainer();
+
         console.log('🤖 Added bot:', bot.name);
         this.sender.addToLog(`Добавлен бот: ${bot.name}`);
 
@@ -397,8 +401,8 @@ class TelegramBots {
                 <strong>${bot.name}</strong>
                 <small style="color: #666;"> (${bot.sheets.length} таблиц)</small>
                 <div style="float: right; display: flex; gap: 4px;">
-                    <button style="background: #17a2b8; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="window.telegramSender.botsModule.selectBot('${bot.id}'); window.telegramSender.closeAllModals();">Выбрать</button>
-                    <button style="background: #dc3545; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="if(confirm('Удалить бота и все его таблицы?')) { window.telegramSender.botsModule.deleteBot('${bot.id}'); window.telegramSender.botsModule.updateBotListContainer(); }">❌</button>
+                    <button style="background: #17a2b8; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="selectBotFromList('${bot.id}');">Выбрать</button>
+                    <button style="background: #dc3545; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="if(confirm('Удалить бота и все его таблицы?')) { deleteBotFromList('${bot.id}'); }">❌</button>
                 </div>
                 <div style="clear: both;"></div>
             </div>

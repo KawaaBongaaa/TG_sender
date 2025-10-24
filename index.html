@@ -538,6 +538,12 @@
                             <label style="font-size: 9px;"><input type="checkbox" id="languageZh" style="transform: scale(0.8);"> ZH</label>
                             <label style="font-size: 9px;"><input type="checkbox" id="languageAr" style="transform: scale(0.8);"> AR</label>
                             <label style="font-size: 9px;"><input type="checkbox" id="languageJa" style="transform: scale(0.8);"> JA</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languagePl" style="transform: scale(0.8);"> PL</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageTr" style="transform: scale(0.8);"> TR</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageKo" style="transform: scale(0.8);"> KO</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageHi" style="transform: scale(0.8);"> HI</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageFa" style="transform: scale(0.8);"> FA</label>
+                            <label style="font-size: 9px;"><input type="checkbox" id="languageOther" style="transform: scale(0.8);"> Other</label>
                         </div>
 
                         <div style="margin-bottom: 6px;">
@@ -826,6 +832,23 @@
     window.showUsersTab = showUsersTab;
     window.expandUsersTable = expandUsersTable;
     window.collapseUsersTable = collapseUsersTable;
+
+    // ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ БОТАМИ В ЛИСТЕ
+    function selectBotFromList(botId) {
+        if (window.telegramSender && window.telegramSender.botsModule) {
+            window.telegramSender.botsModule.selectBot(botId);
+            window.telegramSender.closeAllModals();
+        }
+    }
+
+    function deleteBotFromList(botId) {
+        if (window.telegramSender && window.telegramSender.botsModule) {
+            if (confirm('Удалить бота и все его таблицы?')) {
+                window.telegramSender.botsModule.deleteBot(botId);
+                window.telegramSender.botsModule.updateBotListContainer();
+            }
+        }
+    }
     </script>
 
     <script src="./app.js"></script>

@@ -52,7 +52,7 @@ window.TelegramUsersAdvanced = class {
             this.ui.selectedUsersList = document.getElementById('selectedUsersMiniList');
             this.ui.searchInput = document.getElementById('searchFilter');
             this.ui.filterSelect = null; // Не используется в компактном интерфейсе
-            this.ui.selectAllCheckbox = document.querySelector('#select-all-users');
+            this.ui.selectAllCheckbox = document.querySelector('#masterUserCheckbox');
             this.ui.statsDisplay = null; // Будет использоваться существующая статистика
 
             console.log('[UsersAdvanced] UI elements initialized:', {
@@ -103,7 +103,7 @@ window.TelegramUsersAdvanced = class {
 
 
         // Фильтры по языкам
-        const languageCheckboxes = ['languageRu', 'languageEn', 'languageEs', 'languageFr', 'languageDe', 'languageIt', 'languagePt', 'languageZh', 'languageAr', 'languageJa'];
+        const languageCheckboxes = ['languageRu', 'languageEn', 'languageEs', 'languageFr', 'languageDe', 'languageIt', 'languagePt', 'languageZh', 'languageAr', 'languageJa', 'languagePl', 'languageTr', 'languageKo', 'languageHi', 'languageFa', 'languageOther'];
         languageCheckboxes.forEach(langId => {
             const checkbox = document.getElementById(langId);
             if (checkbox) {
@@ -189,7 +189,7 @@ window.TelegramUsersAdvanced = class {
         if (searchInput) searchInput.value = '';
 
         // Сбрасываем чекбоксы языков
-        const languageCheckboxes = ['languageRu', 'languageEn', 'languageEs', 'languageFr', 'languageDe', 'languageIt', 'languagePt', 'languageZh', 'languageAr', 'languageJa'];
+        const languageCheckboxes = ['languageRu', 'languageEn', 'languageEs', 'languageFr', 'languageDe', 'languageIt', 'languagePt', 'languageZh', 'languageAr', 'languageJa', 'languagePl', 'languageTr', 'languageKo', 'languageHi', 'languageFa', 'languageOther'];
         languageCheckboxes.forEach(id => {
             const checkbox = document.getElementById(id);
             if (checkbox) checkbox.checked = false;
@@ -307,6 +307,7 @@ window.TelegramUsersAdvanced = class {
         console.log(`[UsersAdvanced] Selecting all users: ${select}`);
 
         this.selectedUsers.clear();
+        this.mainApp.selectedUsers.clear(); // Синхронизация с главным приложением
 
         if (select) {
             // Выбираем всех видимых пользователей
@@ -315,9 +316,16 @@ window.TelegramUsersAdvanced = class {
                 const userId = checkbox.dataset.userId;
                 checkbox.checked = true;
                 this.selectedUsers.add(userId);
+                this.mainApp.selectedUsers.add(userId); // Синхронизация
 
                 if (this.users.has(userId)) {
                     this.users.get(userId).selected = true;
+                }
+
+                // Синхронизация с filteredUsers главного приложения
+                const userInFiltered = this.mainApp.filteredUsers.find(u => u.user_id === userId);
+                if (userInFiltered) {
+                    userInFiltered.selected = true;
                 }
             });
         } else {
@@ -327,17 +335,25 @@ window.TelegramUsersAdvanced = class {
                 const userId = checkbox.dataset.userId;
                 checkbox.checked = false;
                 this.selectedUsers.delete(userId);
+                this.mainApp.selectedUsers.delete(userId); // Синхронизация
 
                 if (this.users.has(userId)) {
                     this.users.get(userId).selected = false;
+                }
+
+                // Синхронизация с filteredUsers главного приложения
+                const userInFiltered = this.mainApp.filteredUsers.find(u => u.user_id === userId);
+                if (userInFiltered) {
+                    userInFiltered.selected = false;
                 }
             });
         }
 
         this.updateSelectedUsersData();
+        this.mainApp.updateUI(); // Обновление главного UI
         this.updateUI();
 
-        console.log(`[UsersAdvanced] After select all: ${this.selectedUsers.size} users selected`);
+        console.log(`[UsersAdvanced] After select all: ${this.selectedUsers.size} users selected (synced with main app)`);
     }
 
     // Обновление чекбокса "выбрать все"
@@ -510,19 +526,27 @@ window.TelegramUsersAdvanced = class {
 
         if (isSelected) {
             this.selectedUsers.add(userId);
+            this.mainApp.selectedUsers.add(userId); // Синхронизация
         } else {
             this.selectedUsers.delete(userId);
+            this.mainApp.selectedUsers.delete(userId); // Синхронизация
         }
 
         if (this.users.has(userId)) {
             this.users.get(userId).selected = isSelected;
         }
 
-        this.updateSelectedUsersData();
-        this.updateUI();
-        this.updateSelectAllCheckbox();
+        // Синхронизация с filteredUsers главного приложения
+        const userInFiltered = this.mainApp.filteredUsers.find(u => u.user_id === userId);
+        if (userInFiltered) {
+            userInFiltered.selected = isSelected;
+        }
 
-        console.log(`[UsersAdvanced] Table selection updated, selected count: ${this.selectedUsers.size}`);
+        this.updateSelectedUsersData();
+        this.mainApp.updateUI(); // Обновление главного UI
+        this.updateUI();
+
+        console.log(`[UsersAdvanced] Table selection updated, selected count: ${this.selectedUsers.size} (synced with main app)`);
     }
 
     // Форматирование даты для отображения
