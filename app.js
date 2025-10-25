@@ -168,7 +168,9 @@ class TelegramSender {
         // Управление ботами
         this.bindBtn('editBotsBtn', () => this.modules.bots?.showBotsWizard?.());
         this.bindBtn('editSheetsBtn', () => this.modules.bots?.showSheetsWizard?.());
-        this.bindBtn('saveBotBtn', () => this.saveNewBot());
+        this.bindBtn('saveBotBtn', () => this.modules.bots?.addBotFromWizard?.());
+        this.bindBtn('addSheetBtn', () => this.modules.bots?.addSheetFromWizard?.());
+        this.bindBtn('cancelSheetsWizardBtn', () => this.closeAllModals());
 
         // Шаблоны и ссылки
         this.bindBtn('insertLinkBtn', () => this.showModal('linkWizard'));

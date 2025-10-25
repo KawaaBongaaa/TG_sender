@@ -427,7 +427,7 @@ class TelegramBots {
             <div style="margin: 5px 0; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
                 <strong>${sheet.name}</strong>
                 <small style="color: #666;"> (${sheet.sheetId})</small>
-                <button style="float: right; background: #dc3545; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="if(confirm('Удалить эту таблицу?')) window.telegramSender.modules.bots.deleteSheetFromBot('${this.sender.currentBot.id}', '${sheet.id}'); window.telegramSender.modules.bots.updateSheetListContainer();">❌</button>
+                <button style="float: right; background: #dc3545; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="if(confirm('Удалить эту таблицу?')) window.telegramSender.modules.bots?.deleteSheetFromBot?.('${this.sender.currentBot.id}', '${sheet.id}') && window.telegramSender.modules.bots?.updateSheetListContainer?.();">❌</button>
                 <div style="clear: both;"></div>
             </div>
         `).join('');
@@ -451,8 +451,10 @@ class TelegramBots {
         // Показываем само модальное окно
         const wizard = document.getElementById('botsWizard');
         if (wizard) {
-            wizard.style.display = 'block';
+            // Обновляем список ботов перед показом
             this.updateBotListContainer();
+            // Используем современный способ показа
+            wizard.style.display = 'block';
             console.log('✅ Bots wizard shown');
         } else {
             console.error('❌ Bots wizard element not found');
@@ -835,7 +837,7 @@ class TelegramBots {
             <div style="margin: 5px 0; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
                 <strong>${sheet.name}</strong>
                 <small style="color: #666;"> (${sheet.sheetId})</small>
-                <button style="float: right; background: #dc3545; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="if(confirm('Удалить эту таблицу?')) window.telegramSender.botsModule.deleteSheetFromBot('${this.sender.currentBot.id}', '${sheet.id}'); window.telegramSender.botsModule.updateSheetListContainer();">❌</button>
+                <button style="float: right; background: #dc3545; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 11px;" onclick="if(confirm('Удалить эту таблицу?')) window.telegramSender.modules.bots?.deleteSheetFromBot?.('${this.sender.currentBot.id}', '${sheet.id}') && window.telegramSender.modules.bots?.updateSheetListContainer?.();">❌</button>
                 <div style="clear: both;"></div>
             </div>
         `).join('');

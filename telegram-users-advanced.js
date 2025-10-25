@@ -699,6 +699,67 @@ window.TelegramUsersAdvanced = class {
     }
 
     /**
+     * ПАРСЕР И НОРМАЛИЗАЦИЯ SHEET ID
+     */
+    normalizeSheetId(input) {
+        if (!input || typeof input !== 'string') {
+            return null;
+        }
+
+        const trimmed = input.trim();
+
+        // Если это уже нормализованный ID (начинается с 2PACX или обычный ID)
+        if (trimmed.startsWith('2PACX-') || /^[a-zA-Z0-9-_]{44}$/.test(trimmed)) {
+            return trimmed;
+        }
+
+        // Пытаемся извлечь из published URL
+        const publishedMatch = trimmed.match(/\/spreadsheets\/d\/e\/(2PACX-[^\/\?#]+)/);
+        if (publishedMatch) {
+            return publishedMatch[1];
+        }
+
+        // Пытаемся извлечь из обычной sheet URL
+        const sheetMatch = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]{44})/);
+        if (sheetMatch) {
+            return sheetMatch[1];
+        }
+
+        // Если это полная published ссылка
+        if (trimmed.includes('2PACX-')) {
+            const extracted = trimmed.match(/2PACX-[^\/\?#]+/)?.[0];
+            if (extracted) {
+                return extracted;
+            }
+        }
+
+        console.warn('❌ Unable to normalize Sheet ID from input:', trimmed);
+        return null;
+    }
+
+    /**
+     * ПОСТРОЕНИЕ ПРАВИЛЬНОГО URL ДЛЯ GOOGLE SHEETS
+     */
+    buildGoogleSheetsUrl(sheetId) {
+        const normalizedId = this.normalizeSheetId(sheetId);
+        if (!normalizedId) {
+            throw new Error('Недействительный формат Sheet ID. Используйте published ссылку или корректный ID.');
+        }
+
+        let url;
+        if (normalizedId.startsWith('2PACX-')) {
+            // Новый формат published
+            url = `https://docs.google.com/spreadsheets/d/e/${normalizedId}/pub?gid=0&single=true&output=csv`;
+        } else {
+            // Обычный sheet ID
+            url = `https://docs.google.com/spreadsheets/d/${normalizedId}/gviz/tq?tqx=out:csv`;
+        }
+
+        console.log('✅ Built Google Sheets URL:', url);
+        return url;
+    }
+
+    /**
      * ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЕЙ ИЗ GOOGLE SHEETS
      */
     async loadUsersFromSheets() {
@@ -722,14 +783,7 @@ window.TelegramUsersAdvanced = class {
 
         try {
             // Запрос к Google Sheets API (CSV формат)
-            let googleSheetsUrl;
-            if (config.SHEET_ID.startsWith('2PACX-')) {
-                // Новый формат публикации
-                googleSheetsUrl = `https://docs.google.com/spreadsheets/d/e/${config.SHEET_ID}/pub?gid=0&single=true&output=csv`;
-            } else {
-                // Старый формат (обычный sheet ID)
-                googleSheetsUrl = `https://docs.google.com/spreadsheets/d/${config.SHEET_ID}/gviz/tq?tqx=out:csv`;
-            }
+            let googleSheetsUrl = this.buildGoogleSheetsUrl(config.SHEET_ID);
 
             // Используем CORS прокси если настроен
             let url = googleSheetsUrl;
