@@ -1293,6 +1293,76 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ===========================================
+   РЕСПОНСИВНАЯ ОСНОВНАЯ СЕТКА ИНТЕРФЕЙСА
+   =========================================== */
+
+@media (max-width: 480px) {
+    /* Очень маленькие экраны: вертикальный стек для всех секций */
+    div[style*="grid-template-columns: 1fr 2fr"] {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        margin: 10px 0 !important;
+    }
+
+    /* Минимум отступов для компактности */
+    .section-blue,
+    .section-green,
+    .section-accent,
+    .section-red,
+    .section-info {
+        padding: 10px !important;
+        margin-bottom: 10px !important;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 481px) {
+    /* Средние экраны: два равных столбца для модулей */
+    div[style*="grid-template-columns: 1fr 2fr"] {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 15px !important;
+        margin: 15px 0 !important;
+    }
+
+    /* Оптимизированные отступы для планшетов */
+    .section-blue,
+    .section-green,
+    .section-accent,
+    .section-red,
+    .section-info {
+        padding: 12px !important;
+        margin-bottom: 15px !important;
+    }
+}
+
+@media (max-width: 1200px) and (min-width: 769px) {
+    /* Широкие экраны: текущий вариант - левый узкий, правый шире */
+    div[style*="grid-template-columns: 1fr 2fr"] {
+        grid-template-columns: 1fr 2fr !important;
+        gap: 20px !important;
+        margin: 20px 0 !important;
+    }
+}
+
+@media (min-width: 1201px) {
+    /* Очень широкие экраны: три столбца для максимального использования пространства */
+    div[style*="grid-template-columns: 1fr 2fr"] {
+        grid-template-columns: 1fr 2fr 1fr !important;
+        gap: 20px !important;
+        margin: 20px 0 !important;
+    }
+
+    /* Полные отступы для десктопов */
+    .section-blue,
+    .section-green,
+    .section-accent,
+    .section-red,
+    .section-info {
+        padding: 15px !important;
+        margin-bottom: 20px !important;
+    }
+}
+
+/* ===========================================
    НОВЫЙ КОМПАКТНЫЙ ИНТЕРФЕЙС 2024
    =========================================== */
 

@@ -37,29 +37,171 @@ class TelegramMessagingAdvanced {
     }
 
     /**
-     * ЗАГРУЗКА ШАБЛОНОВ РАССЫЛОК ИЗ LOCALSTORAGE
+     * УНИФИЦИРОВАННЫЙ МЕТОД ДЛЯ AJAX ЗАПРОСОВ С ОБРАБОТКОЙ ОШИБОК
      */
-    loadBroadcastTemplates() {
-        try {
-            const data = localStorage.getItem('telegram_sender_broadcast_templates');
-            this.broadcastTemplates = data ? JSON.parse(data) : [];
-            console.log('📢 Loaded broadcast templates:', this.broadcastTemplates.length);
-        } catch (error) {
-            console.warn('❌ Failed to load broadcast templates:', error);
-            this.broadcastTemplates = [];
+    async safeFetch(url, options = {}, maxRetries = 3) {
+        let lastError;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // Установка дефолтных опций
+                const defaultOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    timeout: 30000, // 30 секунд таймаут
+                };
+
+                const mergedOptions = { ...defaultOptions, ...options };
+
+                // Создаем AbortController для таймаута
+                const controller = new AbortController();
+                mergedOptions.signal = controller.signal;
+
+                // Устанавливаем таймер отмены
+                let timeoutId;
+                if (mergedOptions.timeout) {
+                    timeoutId = setTimeout(() => {
+                        controller.abort();
+                    }, mergedOptions.timeout);
+                }
+
+                console.log(`📡 [${attempt}/${maxRetries}] Fetching: ${url}`);
+
+                const response = await fetch(url, mergedOptions);
+                clearTimeout(timeoutId);
+
+                // Проверяем статус ответа
+                if (!response.ok) {
+                    const errorText = await response.text().catch(() => 'Unknown error');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+                }
+
+                // Проверяем Content-Type для JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    console.log(`✅ Request successful: ${url}`);
+                    return { ok: true, data, response };
+                } else {
+                    const text = await response.text();
+                    console.log(`✅ Request successful (text): ${url}`);
+                    return { ok: true, data: text, response };
+                }
+
+            } catch (error) {
+                clearTimeout(timeoutId);
+                lastError = error;
+
+                console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed for ${url}:`, error.message);
+
+                // Определяем тип ошибки для специальной обработки
+                let errorType = 'unknown';
+
+                if (error.name === 'AbortError') {
+                    errorType = 'timeout';
+                    console.warn('⏰ Request timed out');
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+                    errorType = 'network';
+                    console.warn('🌐 Network error detected');
+                } else if (error.message.includes('CORS')) {
+                    errorType = 'cors';
+                    console.warn('🚫 CORS policy error detected');
+                } else if (error.name === 'TypeError') {
+                    errorType = 'invalid_url';
+                    console.warn('🔗 Invalid URL or malformed request');
+                } else {
+                    errorType = 'server';
+                    console.warn('🖥️ Server error detected');
+                }
+
+                // Логируем ошибку в главное приложение
+                this.mainApp.addToLog(`❌ Ошибка запроса (${errorType}): ${error.message}`);
+
+                // Показываем уведомление пользователю для серьезных ошибок
+                if (attempt === maxRetries) {
+                    let userMessage = 'Произошла ошибка при выполнении запроса.';
+
+                    switch (errorType) {
+                        case 'timeout':
+                            userMessage = 'Превышено время ожидания ответа от сервера.';
+                            break;
+                        case 'network':
+                            userMessage = 'Проблемы с подключением к интернету.';
+                            break;
+                        case 'cors':
+                            userMessage = 'Ошибка безопасности CORS. Проверьте настройки прокси.';
+                            break;
+                        case 'invalid_url':
+                            userMessage = 'Некорректный адрес или параметры запроса.';
+                            break;
+                    }
+
+                    this.mainApp.showStatus(userMessage, 'error');
+
+                    // Специальная обработка CORS - предлагаем использовать прокси
+                    if (errorType === 'cors' && !this.mainApp.config.PROXY_URL.includes('api.allorigins.win')) {
+                        console.log('💡 Suggesting CORS proxy usage');
+                        this.mainApp.addToLog('💡 Попробуйте использовать прокси-сервер для обхода CORS ограничений');
+                    }
+                }
+
+                // Ждем перед следующей попыткой (кроме последней)
+                if (attempt < maxRetries) {
+                    const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff
+                    console.log(`⏳ Waiting ${delay}ms before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
         }
+
+        // Все попытки исчерпаны
+        throw new Error(`Request failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
     }
 
     /**
-     * СОХРАНЕНИЕ ШАБЛОНОВ РАССЫЛОК В LOCALSTORAGE
+     * ЗАВЕРШЕНИЕ РАССЫЛКИ
      */
-    saveBroadcastTemplates() {
-        try {
-            localStorage.setItem('telegram_sender_broadcast_templates', JSON.stringify(this.broadcastTemplates));
-            console.log('💾 Broadcast templates saved');
-        } catch (error) {
-            console.error('❌ Failed to save broadcast templates:', error);
+    finishBroadcast() {
+        this.isSending = false;
+
+        const successCount = this.sendResults.filter(r => r.success).length;
+        const totalCount = this.sendResults.length;
+
+        // Скрываем прогресс-бар
+        window.loadingManager?.hideProgressBar();
+
+        this.mainApp.showStatus(`Рассылка завершена: ${successCount}/${totalCount} успешных`, successCount === totalCount ? 'success' : 'warning');
+        this.mainApp.addToLog(`📊 Рассылка завершена: ${successCount}/${totalCount} успешных отправок`);
+
+        console.log(`📊 Broadcast finished: ${successCount}/${totalCount} successful`);
+
+        // Определяем текст уведомления
+        let toastType = 'success';
+        let toastMessage = `Рассылка завершена: ${successCount}/${totalCount} успешно`;
+
+        if (successCount === 0) {
+            toastType = 'error';
+            toastMessage = `Рассылка провалилась: 0/${totalCount} успешно`;
+        } else if (successCount < totalCount) {
+            toastType = 'warning';
+            toastMessage = `Рассылка частично успешна: ${successCount}/${totalCount}`;
         }
+
+        // Показываем toast уведомление
+        window.loadingManager?.showToast(toastMessage, toastType);
+
+        // Показываем нативное уведомление если рассылка успешная
+        if (Notification.permission === 'granted' && successCount > 0) {
+            new Notification('Рассылка завершена', {
+                body: `${successCount} из ${totalCount} сообщений отправлены успешно`,
+                icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMiAyQzEzLjEwNDYgMiAxNCAyLjk4OTU1IDE0IDRDMTQgNS4xMDQ2IDEzLjEwNDYgNiAxMiA2QzEwLjg5NTQgNiAxMCA1LjEwNDYgMTAgNEMxMCAyLjk4OTU1IDEwLjg5NTQgMiAxMiAyWk0yMSAxOVYyMEgzVjE5SDE3VjE2SjE5IDE4VjE2SDE5VjE4Wk04IDE2SDhWMThIOFYxNloiIGZpbGw9IiMxOTc2RDIiLz4KPHBhdGggZD0iTTkgMkQ5IDIuNUQ5LjQgM0E5IDkgMCAwMTkgNUMxOS44IDEwLjEwNDYgMjAuNyAxMSA5IDExQzEwLjEwNDYgMTEgOSAxMC4xMDQ2IDkgOUM5IDYuODk1NCA5Ljg5NTQgNiAxMSA2QzEyLjEwNDYgNiAxOSA4Ljk4OTU1IDE5IDlDMTkgMTEuMTI5IDE1LjUyIDIxIDkgMjFaIiBmaWxsPSIjMTk3NkQyIi8+Cjwvc3ZnPgo='
+            });
+        }
+
+        // Сохраняем статистику в историю
+        this.saveBroadcastToHistory();
     }
 
     /**
@@ -381,14 +523,22 @@ class TelegramMessagingAdvanced {
      * ЗАПУСК ПРОСТОЙ РАССЫЛКИ
      */
     async startSimpleBroadcast() {
+        const sendBtn = document.getElementById('sendBtn');
+        if (!sendBtn) return;
+
         console.log('[MessagingAdvanced] 🧪 Starting simple broadcast test...');
 
         try {
+            // Показываем загрузку на кнопке
+            const loadingId = `simple_${Date.now()}`;
+            window.loadingManager?.showButtonLoading(sendBtn, 'Отправляем...');
+
             // Получаем выбранных пользователей
             const selectedUsers = this.getSelectedUsersForBroadcast();
             console.log('[MessagingAdvanced] ✅ Got selected users:', selectedUsers.length, selectedUsers);
 
             if (selectedUsers.length === 0) {
+                window.loadingManager?.hideButtonLoading(sendBtn);
                 alert('Выберите хотя бы одного пользователя!');
                 return;
             }
@@ -397,6 +547,7 @@ class TelegramMessagingAdvanced {
             console.log('[MessagingAdvanced] 📝 Message:', message ? `"${message.substring(0, 50)}..."` : 'NONE');
 
             if (!message && !this.hasMediaToSend()) {
+                window.loadingManager?.hideButtonLoading(sendBtn);
                 alert('Введите текст сообщения или выберите медиа файл!');
                 return;
             }
@@ -410,16 +561,42 @@ class TelegramMessagingAdvanced {
             });
 
             if (!config?.BOT_TOKEN) {
+                window.loadingManager?.hideButtonLoading(sendBtn);
                 alert('❌ BOT_TOKEN не настроен! Выберите бота через меню управления ботами.');
                 return;
             }
 
             this.mainApp.addToLog('🧪 Начинается тестовая отправка...');
-            await this.startBroadcastToUsers(selectedUsers, message, this.messageTimeout);
+
+            const result = await this.startBroadcastToUsers(selectedUsers, message, this.messageTimeout);
+
+            // Показываем уведомление об успешной отправке
+            const successCount = result?.filter(r => r.success).length || 0;
+            const totalCount = selectedUsers.length;
+
+            if (successCount > 0) {
+                window.loadingManager?.showToast(
+                    `Тестовая отправка завершена: ${successCount}/${totalCount} успешно`,
+                    successCount === totalCount ? 'success' : 'warning'
+                );
+            }
+
+            // Скрываем загрузку с кнопки
+            window.loadingManager?.hideButtonLoading(sendBtn);
 
         } catch (error) {
             console.error('[MessagingAdvanced] ❌ Simple broadcast error:', error);
             this.mainApp.addToLog(`❌ Ошибка тестовой отправки: ${error.message}`);
+
+            // Показываем ошибку в toast
+            window.loadingManager?.showToast(
+                `Ошибка тестовой отправки: ${error.message}`,
+                'error'
+            );
+
+            // Скрываем загрузку с кнопки
+            window.loadingManager?.hideButtonLoading(sendBtn);
+
             alert(`❌ Ошибка тестовой отправки:\n\n${error.message}`);
         }
     }
@@ -465,6 +642,9 @@ class TelegramMessagingAdvanced {
         }
 
         console.log(`📤 Starting broadcast to ${filteredUsers.length}/${users.length} users with timeout ${timeout}ms`);
+
+        // Показываем прогресс-бар и первоначальный статус
+        window.loadingManager?.updateProgressBar(0, 0, filteredUsers.length, 'Начинаем рассылку...');
         this.mainApp.showStatus(`Отправка 0/${filteredUsers.length}...`, 'info');
 
         // Отправка сообщений с таймаутом
@@ -472,7 +652,17 @@ class TelegramMessagingAdvanced {
             if (!this.isSending) break; // Проверка на отмену
 
             const user = filteredUsers[i];
+            const currentProgress = ((i + 1) / filteredUsers.length) * 100;
+
             try {
+                // Обновляем прогресс до отправки
+                window.loadingManager?.updateProgressBar(
+                    currentProgress,
+                    i + 1,
+                    filteredUsers.length,
+                    `Отправка ${this.getFirstNameDisplay(user)}...`
+                );
+
                 // Подставляем плейсхолдеры в сообщение для конкретного пользователя
                 const personalizedMessage = this.replacePlaceholders(message, user);
 
@@ -499,10 +689,10 @@ class TelegramMessagingAdvanced {
                 this.mainApp.addToLog(`❌ ${this.getFirstNameDisplay(user)} ${this.getLastNameDisplay(user)} (${user.user_id}): ${error.message}`);
             }
 
-            this.sendProgress = ((i + 1) / filteredUsers.length) * 100;
+            this.sendProgress = currentProgress;
             this.mainApp.sendProgress = this.sendProgress; // Синхронизация
 
-            this.mainApp.showStatus(`Отправка ${i + 1}/${filteredUsers.length}... (${Math.round(100 - this.sendProgress)}% осталось)`, 'info');
+            this.mainApp.showStatus(`Отправка ${i + 1}/${filteredUsers.length}... (${Math.round(100 - currentProgress)}% осталось)`, 'info');
 
             // Таймаут между сообщениями (кроме последнего)
             if (i < filteredUsers.length - 1 && timeout > 0) {
@@ -1513,8 +1703,6 @@ class TelegramMessagingAdvanced {
                         // Если есть модуль кнопок, восстанавливаем его состояние
                         if (this.mainApp.modules?.buttons) {
                             this.mainApp.modules.buttons.messageButtons = [...template.buttons];
-                            // Сохраняем кнопки локально
-                            this.mainApp.modules.buttons.saveButtons();
                             // Обновляем интерфейс с небольшой задержкой для гарантии
                             setTimeout(() => {
                                 if (this.mainApp.modules?.buttons) {
@@ -1711,6 +1899,60 @@ class TelegramMessagingAdvanced {
     }
 
     /**
+     * ДОБАВИТЬ ШАБЛОН ЧЕРЕЗ WIZARD (ПРОКСИ К МОДУЛЮ TEMPLATES)
+     */
+    addTemplateFromWizard() {
+        if (this.mainApp.modules?.templates?.addTemplateFromWizard) {
+            return this.mainApp.modules.templates.addTemplateFromWizard();
+        } else {
+            alert('Модуль шаблонов не инициализирован');
+            console.error('❌ addTemplateFromWizard method not found in templates module');
+            return null;
+        }
+    }
+
+    /**
+     * СКРЫТЬ WIZARD ШАБЛОНОВ (ПРОКСИ К МОДУЛЮ TEMPLATES)
+     */
+    hideTemplatesWizard() {
+        if (this.mainApp.modules?.templates?.hideTemplatesWizard) {
+            return this.mainApp.modules.templates.hideTemplatesWizard();
+        } else {
+            const wizard = document.getElementById('templateWizard');
+            if (wizard) {
+                wizard.style.display = 'none';
+            }
+            return null;
+        }
+    }
+
+    /**
+     * ЗАПЛАНИРОВАТЬ РАССЫЛКУ (ПРОКСИ К МОДУЛЮ SCHEDULER)
+     */
+    scheduleCurrentBroadcast() {
+        if (this.mainApp.modules?.scheduler?.scheduleCurrentBroadcast) {
+            return this.mainApp.modules.scheduler.scheduleCurrentBroadcast();
+        } else {
+            alert('Модуль планировщика не инициализирован');
+            console.error('❌ scheduleCurrentBroadcast method not found in scheduler module');
+            return null;
+        }
+    }
+
+    /**
+     * УСТАНОВИТЬ ТАЙМАУТ СООБЩЕНИЙ (ПРОКСИ К МОДУЛЮ SCHEDULER)
+     */
+    setMessageTimeout() {
+        if (this.mainApp.modules?.scheduler?.setMessageTimeout) {
+            return this.mainApp.modules.scheduler.setMessageTimeout();
+        } else {
+            alert('Модуль планировщика не инициализирован');
+            console.error('❌ setMessageTimeout method not found in scheduler module');
+            return null;
+        }
+    }
+
+    /**
      * ИНИЦИАЛИЗАЦИЯ ПЛАНИРОВЩИКА
      */
     initScheduler() {
@@ -1722,6 +1964,32 @@ class TelegramMessagingAdvanced {
         this.checkScheduledBroadcasts();
 
         console.log('⏰ Scheduler initialized');
+    }
+
+    /**
+     * ЗАГРУЗКА ШАБЛОНОВ РАССЫЛОК ИЗ LOCALSTORAGE
+     */
+    loadBroadcastTemplates() {
+        try {
+            const data = localStorage.getItem('telegram_sender_broadcast_templates');
+            this.broadcastTemplates = data ? JSON.parse(data) : [];
+            console.log('📢 Loaded broadcast templates:', this.broadcastTemplates.length);
+        } catch (error) {
+            console.warn('❌ Failed to load broadcast templates:', error);
+            this.broadcastTemplates = [];
+        }
+    }
+
+    /**
+     * СОХРАНЕНИЕ ШАБЛОНОВ РАССЫЛОК В LOCALSTORAGE
+     */
+    saveBroadcastTemplates() {
+        try {
+            localStorage.setItem('telegram_sender_broadcast_templates', JSON.stringify(this.broadcastTemplates));
+            console.log('💾 Broadcast templates saved');
+        } catch (error) {
+            console.error('❌ Failed to save broadcast templates:', error);
+        }
     }
 
     /**
