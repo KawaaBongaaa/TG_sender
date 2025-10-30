@@ -1,0 +1,617 @@
+/* =============================================================================
+   MODE CARDS COMPONENT - Модернизированные карточки режимов генерации
+   Адаптивный дизайн с поддержкой различных устройств
+   ============================================================================= */
+
+:root {
+    --mode-card-padding: 24px;
+    --mode-card-border-radius: 16px;
+    --mode-card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --mode-card-shadow-expanded: 0 20px 60px rgba(0, 0, 0, 0.15);
+    --mode-card-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --mode-card-spacing: 16px;
+    --indicator-size: 8px;
+    --indicator-active-size: 12px;
+}
+
+/* =============================================================================
+   НОВЫЙ КОНТЕЙНЕР ДЛЯ СЕТКИ КАРТОЧЕК - Всегда видимый, адаптивный
+   ============================================================================= */
+.mode-cards-wrapper {
+    width: 100%;
+    padding: 2px 0;
+}
+
+.mode-cards-grid {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-primary) transparent;
+    transform: translateZ(0);
+
+    /* Webkit scrollbar styles */
+    &::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--border-primary);
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-primary);
+    }
+}
+
+/* =============================================================================
+   СКРЫТЫЙ КОНТЕЙНЕР СТАРОЙ КАРУСЕЛИ (для совместимости)
+   ============================================================================= */
+#modeCarouselContainer {
+    display: none !important; /* Полностью скрыт */
+}
+
+/* =============================================================================
+   ОСНОВНЫЕ КАРТОЧКИ РЕЖИМОВ
+   ============================================================================= */
+.mode-card {
+    flex: 0 0 220px;
+    height: 140px;
+    background: var(--bg-primary);
+    border-radius: var(--mode-card-border-radius);
+    padding: 14px;
+    box-shadow: var(--mode-card-shadow);
+    border: 2px solid var(--border-primary);
+    cursor: pointer;
+    transition: var(--mode-card-transition);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+}
+
+/* =============================================================================
+   БЕЙДЖИ РЕЖИМОВ - Современный минималистичный дизайн
+   ============================================================================= */
+.mode-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    z-index: 1;
+    backdrop-filter: blur(4px);
+    border: 1px solid transparent;
+    line-height: 1;
+    max-width: 100px;
+}
+
+.mode-badge--premium {
+    background: rgba(158, 158, 158, 0.08);
+    color: #9e9e9e;
+    border-color: rgba(158, 158, 158, 0.2);
+    box-shadow: 0 2px 4px rgba(158, 158, 158, 0.1);
+}
+
+.mode-badge--free {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: #fff;
+    border-color: rgba(76, 175, 80, 0.4);
+    box-shadow: 0 2px 6px rgba(76, 175, 80, 0.25);
+}
+
+.mode-badge--standard {
+    background: rgba(100, 181, 246, 0.1);
+    color: #42a5f5;
+    border-color: rgba(100, 181, 246, 0.3);
+    box-shadow: 0 2px 4px rgba(100, 181, 246, 0.15);
+}
+
+/* =============================================================================
+   СОСТОЯНИЯ КАРТОЧЕК
+   ============================================================================= */
+/* Hover состояние */
+.mode-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* =============================================================================
+   ИНДИКАТОР ДОПОЛНИТЕЛЬНОЙ ИНФОРМАЦИИ (tooltip hint)
+   ============================================================================= */
+.mode-info-indicator {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(var(--accent-primary-rgb, 33, 150, 243), 0.1);
+    border: 1px solid var(--accent-primary, rgba(33, 150, 243, 0.3));
+    color: var(--accent-primary, #2196f3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    user-select: none;
+    z-index: 2;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* Появление индикатора при hover/touch на карточке */
+.mode-card:hover .mode-info-indicator,
+.mode-card.active-touch .mode-info-indicator {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Hover состояние индикатора */
+.mode-info-indicator:hover {
+    background: var(--accent-primary, #2196f3);
+    color: white;
+    border-color: var(--accent-primary, #2196f3);
+    transform: scale(1.1);
+}
+
+/* Темная тема адаптация */
+[data-theme="dark"] .mode-info-indicator {
+    background: rgba(var(--accent-primary-rgb, 33, 150, 243), 0.15);
+    border-color: rgba(var(--accent-primary-rgb, 33, 150, 243), 0.5);
+}
+
+/* Активное состояние (текущий режим) - только визуальное выделение без дёргания */
+.mode-card.selected {
+    border-color: var(--accent-primary);
+    background: var(--bg-secondary);
+    box-shadow: var(--mode-card-shadow-expanded);
+    transform: translateY(-4px);
+}
+
+/* Убираем развернутое состояние для избежания дёргания интерфейса */
+/*
+.mode-card.expanded {
+    min-height: 320px;
+    transform: translateY(-8px);
+    box-shadow: var(--mode-card-shadow-expanded);
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.mode-card.expanded .mode-card-content {
+    opacity: 1;
+    max-height: 200px;
+    margin-top: var(--mode-card-spacing);
+}
+
+.mode-card.expanded .mode-card-description,
+.mode-card.expanded .mode-icon {
+    opacity: 1;
+    transform: translateY(0);
+}
+*/
+
+/* =============================================================================
+   СОДЕРЖИМОЕ КАРТОЧЕК
+   ============================================================================= */
+.mode-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+}
+
+.mode-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    text-wrap: nowrap;
+}
+
+.mode-card-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0;
+    opacity: 0.8;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.mode-card.expanded .mode-card-description {
+    max-height: 100px;
+    opacity: 1;
+}
+
+.mode-icon {
+    font-size: 32px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0.9;
+}
+
+.mode-card.expanded .mode-icon {
+    transform: scale(1.1);
+}
+
+.mode-card-content {
+    width: 100%;
+    opacity: 0;
+    max-height: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* =============================================================================
+   ИНДИКАТОРЫ ПРОКРУТКИ
+   ============================================================================= */
+.mode-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 0;
+    position: relative;
+    z-index: 10;
+}
+
+.indicator {
+    width: var(--indicator-size);
+    height: var(--indicator-size);
+    border-radius: 50%;
+    background: var(--border-primary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.indicator.active {
+    width: var(--indicator-active-size);
+    height: var(--indicator-active-size);
+    background: var(--accent-primary);
+    transform: scale(1.2);
+}
+
+/* =============================================================================
+   АНИМАЦИИ И ПЕРЕХОДЫ
+   ============================================================================= */
+@keyframes mode-card-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: var(--mode-card-shadow);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: var(--mode-card-shadow-expanded);
+    }
+}
+
+.mode-card:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* =============================================================================
+   АДАПТИВНОСТЬ ДЛЯ РАЗЛИЧНЫХ ЭКРАНОВ
+   ============================================================================= */
+/* Маленькие экраны (мобильные) */
+@media (max-width: 480px) {
+    :root {
+        --mode-card-padding: 16px;
+        --mode-card-border-radius: 12px;
+        --mode-card-spacing: 12px;
+    }
+
+    .mode-cards-grid {
+        gap: 6px;
+        padding: 12px;
+        margin-right: -9px; /* 5% of card width (180px) for peek effect */
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+    }
+
+    .mode-card {
+        flex: 0 0 180px;
+        height: 120px;
+        padding: 10px;
+        scroll-snap-align: start;
+    }
+
+    .mode-icon {
+        font-size: 20px;
+    }
+
+    .mode-card-title {
+        font-size: 13px;
+    }
+
+    .mode-card-description {
+        font-size: 11px;
+    }
+
+    .mode-badge {
+        font-size: 8px;
+        padding: 1px 6px;
+        max-width: 60px;
+    }
+}
+
+/* Средние экраны (планшеты) */
+@media (min-width: 481px) and (max-width: 768px) {
+    .mode-cards-grid {
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .mode-card {
+        flex: 0 0 200px;
+        height: 130px;
+        padding: 14px;
+    }
+
+    .mode-icon {
+        font-size: 24px;
+    }
+
+    .mode-card-title {
+        font-size: 15px;
+    }
+}
+
+/* Большие экраны (десктоп) */
+@media (min-width: 769px) {
+    .mode-cards-grid {
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .mode-card {
+        flex: 0 0 240px;
+        height: 150px;
+        padding: 18px;
+        transform: translateY(0);
+    }
+
+    .mode-card:hover {
+        transform: translateY(-6px);
+    }
+
+    .mode-icon {
+        font-size: 30px;
+    }
+
+    .mode-card-title {
+        font-size: 17px;
+    }
+}
+
+/* Очень большие экраны */
+@media (min-width: 1200px) {
+    .mode-cards-grid {
+        gap: 20px;
+        padding: 24px;
+    }
+
+    .mode-card {
+        flex: 0 0 260px;
+        height: 170px;
+        padding: 20px;
+    }
+
+    .mode-icon {
+        font-size: 36px;
+    }
+
+    .mode-card-title {
+        font-size: 19px;
+    }
+}
+
+/* Темная тема оптимизации */
+[data-theme="dark"] .mode-card {
+    background: var(--bg-primary);
+    border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .mode-card.selected {
+    border-color: var(--accent-primary);
+    background: linear-gradient(135deg,
+        rgba(var(--accent-primary-rgb), 0.05) 0%,
+        rgba(var(--accent-primary-rgb), 0.1) 100%);
+}
+
+/* Анимации для карточек */
+.mode-card.selected {
+    animation: mode-card-pulse 0.6s ease-out;
+}
+
+/* Фокус для клавиатурной навигации */
+.mode-card:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 4px;
+}
+
+/* =============================================================================
+   ДОСТУПНОСТЬ
+   ============================================================================= */
+.mode-card[aria-expanded="false"] .mode-card-content {
+    display: none;
+}
+
+.mode-card[aria-expanded="true"] .mode-card-content {
+    display: block;
+}
+
+/* =============================================================================
+   СОВМЕСТИМОСТЬ С СТАРЫМИ БРАУЗЕРАМИ
+   ============================================================================= */
+/* Fallback для старых браузеров без CSS Grid/Flexbox */
+@supports not (display: flex) {
+    .mode-cards-container {
+        display: block;
+        white-space: nowrap;
+    }
+
+    .mode-card {
+        display: inline-block;
+        vertical-align: top;
+    }
+}
+
+/* =============================================================================
+   ВЫСОКАЯ ПРОИЗВОДИТЕЛЬНОСТЬ
+   ============================================================================= */
+/* Оптимизация для GPU */
+.mode-card {
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+}
+
+/* Ограничение анимаций для медленных устройств */
+@media (prefers-reduced-motion: reduce) {
+    .mode-card,
+    .mode-card:hover,
+    .mode-card.expanded,
+    .indicator {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .mode-card:hover {
+        transform: none !important;
+    }
+
+    .mode-tooltip {
+        transition: none !important;
+    }
+}
+
+/* =============================================================================
+   MODE CARDS TOOLTIP STYLES
+   ============================================================================= */
+.mode-tooltip {
+    position: fixed;
+    max-width: 300px;
+    padding: 12px 16px;
+    background: var(--bg-primary, rgba(0, 0, 0, 0.95));
+    color: var(--text-primary, white);
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 400;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10000 !important;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    word-wrap: break-word;
+    hyphens: auto;
+    /* Ограничиваем высоту для предотвращения очень длинных tooltip */
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Hover эффекты карточек с tooltip'ом - предотвращаем моргание */
+.mode-card:has(.mode-tooltip.visible) {
+    transition: none !important;
+    transform: none !important;
+}
+
+/* Fade-in состояние */
+.mode-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Темная тема */
+[data-theme="dark"] .mode-tooltip {
+    background: rgba(0, 0, 0, 0.95);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Светлая тема */
+[data-theme="light"] .mode-tooltip {
+    background: rgba(255, 255, 255, 0.95);
+    color: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .mode-tooltip {
+        max-width: 280px;
+        padding: 10px 14px;
+        font-size: 13px;
+        margin: 0 10px;
+    }
+}
+
+@media (min-width: 768px) {
+    .mode-tooltip {
+        max-width: 320px;
+    }
+}
+
+/* =============================================================================
+   PRINT СТИЛИ
+   ============================================================================= */
+@media print {
+    .mode-cards-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .mode-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .mode-tooltip {
+        display: none !important;
+    }
+}
+
+/* =============================================================================
+   STYLE CHOICE LABEL - JAPANESE SIZE AND BRIGHTNESS
+   ============================================================================= */
+#chooseStyleSection label.style-left-label {
+    font-size: var(--font-size-xs) !important;
+    font-weight: 700 !important;
+    opacity: 0.9 !important;
+    color: var(--primary-200) !important;
+    padding-left: 0 !important;
+    padding-top: 0 !important;
+    letter-spacing: 0.5px;
+}

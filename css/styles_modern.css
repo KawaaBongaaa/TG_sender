@@ -1,0 +1,19 @@
+/* MAIN STYLES FILE - Import all CSS modules */
+
+/* Core CSS Variables and Themes */
+@import url('variables.css');
+
+/* Base styles and reset */
+@import url('base.css');
+
+/* Component specific styles */
+@import url('components.css');
+
+/* Mode Cards Component */
+@import url('mode-cards.css');
+
+/* Screen layouts and views */
+@import url('screens.css');
+
+/* Animations and keyframes */
+@import url('animations.css');

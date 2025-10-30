@@ -1,0 +1,36 @@
+/* ===== PIXPLACE FULL SCREEN =====
+ * Make the app use entire screen on desktops instead of mobile layout
+ */
+
+@media (min-width: 768px) {
+    .main-content {
+        padding: 0 1rem;
+        margin: 0 auto;
+        width: auto;
+        max-width: none;
+    }
+
+    .mode-carousel-container,
+    .mode-carousel {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    .main-content {
+        padding: 0 2rem;
+    }
+}
+
+@media (min-width: 1440px) {
+    .main-content {
+        padding: 0 3rem;
+    }
+
+    .header-content {
+        max-width: none;
+        width: 100%;
+        padding: 0 3rem;
+    }
+}

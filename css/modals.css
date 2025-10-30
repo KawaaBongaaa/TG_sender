@@ -1,0 +1,843 @@
+/* ===== GLASSMORPHISM ANIMATION ===== */
+@keyframes glassmorphismFadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.glassmorphism-animate-in {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: glassmorphismFadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* ===== GENERATION RESULT MODAL STYLES ===== */
+/* MINIMALIST DESIGN - clean, compact and effective */
+
+.generation-result-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 0.25rem; /* minimal default padding */
+}
+
+/* Adaptive padding for different screen sizes */
+@media (min-width: 1200px) {
+    .generation-result-modal {
+        padding: 2rem; /* more space on large screens */
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .generation-result-modal {
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+    .generation-result-modal {
+        padding: 0.75rem; /* Balanced for medium devices */
+    }
+}
+
+@media (max-width: 768px) {
+    .generation-result-modal {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .generation-result-modal {
+        padding: 0.25rem; /* minimal for mobile */
+    }
+}
+
+.generation-result-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.generation-result-modal .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+}
+
+.generation-result-modal .modal-content {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: 16px;
+    border: 1px solid var(--border-primary);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: min(700px, 90vw); /* Increased: 700px for medium screens */
+    width: 100%;
+    max-height: 95vh; /* Increased for larger images */
+    overflow: hidden;
+    transform: scale(0.95) translateY(-10px);
+    transition: all 0.3s ease;
+    padding: 0.75rem; /* Base internal padding */
+}
+
+.generation-result-modal.show .modal-content {
+    transform: scale(1) translateY(0);
+}
+
+/* Large screens: much wider now */
+@media (min-width: 1200px) {
+    .generation-result-modal .modal-content {
+        max-width: min(1400px, 95vw); /* Even wider: 1400px for large displays */
+    }
+}
+
+/* Medium-large screens */
+@media (min-width: 1024px) and (max-width: 1199px) {
+    .generation-result-modal .modal-content {
+        max-width: min(900px, 85vw);
+    }
+}
+
+/* Adaptive internal padding for modal content */
+@media (min-width: 1200px) {
+    .generation-result-modal .modal-content {
+        padding: 1.5rem; /* More space for large modals */
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+    .generation-result-modal .modal-content {
+        padding: 1.25rem;
+    }
+}
+
+/* Medium phones to small tablets: 480-767px */
+@media (min-width: 481px) and (max-width: 767px) {
+    .generation-result-modal .modal-content {
+        max-width: min(600px, 92vw); /* Better fit for 480-700px screens */
+        padding: 0.75rem; /* Balanced padding */
+    }
+}
+
+/* Small tablets: 95vw */
+@media (max-width: 768px) {
+    .generation-result-modal .modal-content {
+        max-width: 95vw;
+        max-height: 95vh;
+        border-radius: 12px;
+        padding: 0.5rem; /* Less padding on smaller screens */
+    }
+}
+
+/* Mobile: full width */
+@media (max-width: 480px) {
+    .generation-result-modal .modal-content {
+        max-width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        overflow-y: auto; /* Add scroll for long content on mobile */
+        padding: 0.25rem; /* Minimal padding for mobile */
+        padding-bottom: 2rem; /* Space for mobile navigation */
+    }
+}
+
+.generation-result-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+    min-height: 50px;
+}
+
+.generation-result-modal .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.generation-result-modal .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
+.generation-result-modal .close-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.generation-result-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0; /* REMOVE ALL PADDING */
+    margin: 0;
+    max-width: 100%;
+}
+
+.generation-result-image-container {
+    display: flex;
+    justify-content: center;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+    margin: 0 auto; /* CENTER THE CONTAINER */
+    padding: 0.5rem; /* MINIMAL PADDING FOR IMAGE FRAME */
+    max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.image-wrapper-relative {
+    position: relative !important;
+    display: inline-block !important;
+}
+
+.img-relative-div {
+    position: relative !important;
+}
+
+.img-positioning-container {
+    position: relative !important;
+    height: auto !important;
+}
+
+.result-full-image {
+    width: 100%;
+    max-height: min(70vh, 480px); /* Increased for wider modals */
+    object-fit: contain; /* Fill width on larger screens */
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Desktop: allow much larger images */
+@media (min-width: 1200px) {
+    .result-full-image {
+        max-height: min(80vh, 600px); /* Much larger on wide displays */
+    }
+}
+
+/* Tablet: moderate size */
+@media (min-width: 769px) and (max-width: 1199px) {
+    .result-full-image {
+        max-height: min(75vh, 520px);
+    }
+}
+
+/* Mobile: preserve natural size, don't force large */
+@media (max-width: 768px) {
+    .result-full-image {
+        object-fit: scale-down; /* Comfortable viewing on mobile */
+        max-height: 280px; /* Smaller for mobile */
+    }
+}
+
+.generation-result-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1rem; /* ADD PADDING ONLY LEFT/RIGHT */
+    margin-bottom: 1rem; /* ADD BOTTOM MARGIN FOR BUTTON */
+}
+
+@media (max-width: 768px) {
+    .generation-result-container {
+        gap: 0.75rem;
+    }
+
+    .generation-result-details {
+        padding: 0 0.75rem;
+    }
+
+    .result-full-image {
+        max-height: 250px;
+    }
+
+    .reuse-prompt-btn {
+        min-height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .reuse-btn-text {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .reuse-prompt-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+        font-size: 1rem;
+    }
+
+    .reuse-btn-text {
+        font-size: 1rem;
+    }
+}
+
+.result-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Clean 2-column layout */
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    font-size: 0.7rem;
+}
+
+@media (max-width: 480px) {
+    .result-meta {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+.result-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.result-meta-item .meta-label {
+    font-weight: 500;
+    color: var(--text-tertiary);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+}
+
+.result-meta-item .meta-value {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    line-height: 1.2;
+    opacity: 0.7;
+}
+
+.amount-negative {
+    color: var(--error-500) !important;
+}
+
+.result-prompt {
+    order: 1; /* SHOW PROMPT FIRST */
+}
+
+/* ACTION BUTTONS */
+.result-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem; /* Add bottom margin for spacing */
+}
+
+/* Use existing button styles */
+.use-for-generation-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    min-height: 48px;
+}
+
+/* IMAGE OVERLAY BUTTONS - FORCE POSITIONING */
+.generation-result-image-container {
+    position: relative !important; /* FORCE relative positioning */
+}
+
+.image-overlay {
+    position: absolute !important;
+    top: 0 !important; /* TOP OF IMAGE AREA */
+    right: 0 !important; /* RIGHT ALIGN */
+    left: auto !important;
+    width: auto !important; /* AUTO WIDTH FOR COLUMN */
+    display: flex !important;
+    flex-direction: column !important; /* COLUMN LAYOUT */
+    justify-content: flex-start !important; /* TOP TO BOTTOM */
+    align-items: center !important; /* CENTER BUTTONS IN COLUMN */
+    padding: 0.5rem !important; /* PADDING FROM EDGES */
+    gap: 0.25rem !important;
+    z-index: 1000 !important;
+    pointer-events: all !important;
+    transform: translateX(16px) !important; /* SHIFT SLIGHTLY MORE RIGHT */
+}
+
+.overlay-btn {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 0.65rem !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.overlay-btn:hover {
+    background: rgba(0, 0, 0, 0.95) !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+.overlay-btn:active {
+    transform: scale(0.95) !important;
+}
+
+.overlay-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)) !important;
+}
+
+/* BACK TO ORIGINAL COLORS */
+.download-btn,
+.share-btn {
+    /* Dark overlay buttons as original */
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+.download-btn:hover,
+.share-btn:hover {
+    background: rgba(0, 0, 0, 0.95) !important;
+}
+
+/* BOTTOM OVERLAY FOR USE BUTTON */
+.image-overlay-bottom {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0.75rem !important;
+    display: flex !important;
+    justify-content: center !important;
+    z-index: 1000 !important;
+    pointer-events: all !important;
+}
+
+.use-overlay-btn {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    padding: 0.375rem 0.875rem !important;
+    color: rgba(0, 0, 0, 0.85) !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.02em !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+    text-decoration: none !important;
+    min-height: 32px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.use-overlay-btn:hover {
+    background: rgba(255, 255, 255, 0.8) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.use-overlay-btn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.use-overlay-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
+}
+
+/* PROMPT SECTION */
+.result-prompt-container {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+.prompt-input-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.reuse-prompt-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    transition: all 0.2s ease;
+    min-height: 36px;
+}
+
+.reuse-btn-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.reuse-prompt-btn:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-secondary);
+}
+
+.reuse-prompt-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.prompt-text-area .prompt-label {
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.prompt-text-area .prompt-text {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    max-height: 60px;
+    overflow-y: auto;
+}
+
+/* NEGATIVE PROMPT CHECKBOX - MODERN DISCREET DESIGN */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.checkbox-label:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* LIMIT CLICKABLE AREA - ONLY CHECKBOX AND TEXT */
+.checkbox-label {
+    pointer-events: none; /* Disable clicking on entire label area */
+}
+
+.checkbox-label input[type="checkbox"],
+.checkbox-label .checkbox-custom,
+.checkbox-label .checkbox-text {
+    pointer-events: auto; /* Enable clicking only on checkbox and text */
+}
+
+/* HIDE DEFAULT CHECKBOX */
+.checkbox-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* CUSTOM CHECKBOX STYLING - MICRO SIZE */
+.checkbox-custom {
+    position: relative;
+    left: 10px;
+    height: 12px;
+    width: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Dark theme checkbox */
+[data-theme="dark"] .checkbox-custom {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light theme checkbox */
+[data-theme="light"] .checkbox-custom {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Checked state - subtle animation */
+.checkbox-label input:checked ~ .checkbox-custom {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+    border-color: rgba(14, 165, 233, 0.5);
+    transform: scale(1.05);
+}
+
+.checkbox-label input:checked ~ .checkbox-custom::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    width: 3px;
+    height: 5px;
+    border: solid white;
+    border-width: 0 1px 1px 0;
+    transform: rotate(45deg);
+    opacity: 0.9;
+}
+
+/* CHECKBOX TEXT - MINI SIZE */
+.checkbox-text {
+    font-size: 10px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    font-family: "Inter", sans-serif;
+}
+
+.checkbox-label:hover .checkbox-text {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.checkbox-label input:checked ~ .checkbox-text {
+    color: rgba(14, 165, 233, 0.8);
+    font-weight: 500;
+}
+
+/* Dark theme text */
+[data-theme="dark"] .checkbox-text {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .checkbox-label:hover .checkbox-text {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .checkbox-label input:checked ~ .checkbox-text {
+    color: rgba(14, 165, 233, 0.9);
+    font-weight: 500;
+}
+
+/* Light theme text */
+[data-theme="light"] .checkbox-text {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .checkbox-label:hover .checkbox-text {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="light"] .checkbox-label input:checked ~ .checkbox-text {
+    color: rgba(14, 165, 233, 0.9);
+    font-weight: 500;
+}
+
+/* NEGATIVE PROMPT INPUT - COMPACT DESIGN */
+/* More compact negative prompt input compared to regular prompt */
+#negativePromptInput {
+    min-height: 80px !important;
+    max-height: 80px !important;
+    font-size: var(--font-size-sm) !important;
+    padding: var(--space-1) var(--space-2) !important;
+    margin: 0 !important;
+    border-radius: var(--radius-md) !important;
+    resize: none !important;
+}
+
+/* Even more compact on mobile */
+@media (max-width: 768px) {
+    #negativePromptInput {
+        min-height: 70px !important;
+        max-height: 70px !important;
+        font-size: calc(var(--font-size-sm) - 1px) !important;
+        padding: calc(var(--space-1) - 2px) var(--space-2) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #negativePromptInput {
+        min-height: 65px !important;
+        max-height: 65px !important;
+        font-size: calc(var(--font-size-sm) - 2px) !important;
+        padding: calc(var(--space-1) - 3px) var(--space-2) !important;
+    }
+}
+
+/* Make it narrower than regular prompt input */
+@media (min-width: 768px) {
+    #negativePromptInput {
+        width: 92% !important; /* Slightly narrower than 100% */
+    }
+}
+
+/* Add space between checkbox and input field to prevent overlap */
+#negativePromptFormGroup {
+    margin-top: 8px !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* Ensure checkbox doesn't get covered when input expands */
+.checkbox-label {
+    position: relative;
+    z-index: 10;
+}
+
+/* Make sure input field doesn't overlap button area */
+#negativePromptSection {
+    position: relative;
+}
+
+#negativePromptSection #negativePromptFormGroup {
+    margin-bottom: 0.5rem;
+}
+
+/* ===== FORM COMPONENTS - STYLE SELECTION ===== */
+
+/* FORM LABEL ROW - CONTAINS LABEL AND DETAILS BUTTON */
+.form-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+    gap: var(--space-3);
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+/* STYLE SECTION - SPECIFIC ROW FOR STYLE SELECTION */
+#chooseStyleSection .form-label-row {
+    justify-content: flex-start;
+    gap: var(--space-1); /* Уменьшенный отступ между чекбоксом и текстом */
+    align-items: center;
+}
+
+#chooseStyleSection .checkbox-label.small-checkbox {
+    margin-left: 0; /* Убрали auto отступ */
+    margin-right: 0;
+}
+
+/* STYLE CHECKBOX - FIX POSITIONING */
+#chooseStyleSection .checkbox-label.small-checkbox {
+    display: flex !important;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 0; /* Вплотную к тексту */
+}
+
+#chooseStyleSection .checkbox-custom {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-primary);
+    border-radius: 3px;
+    position: relative;
+    transition: all 0.2s ease;
+    background: var(--bg-secondary);
+    margin-right: 6px;
+    cursor: pointer;
+}
+
+#chooseStyleSection .checkbox-label input[type="checkbox"]:checked + .checkbox-custom::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--primary-500);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 1;
+}
+
+#chooseStyleSection .checkbox-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+#chooseStyleSection .checkbox-label input[type="checkbox"]:checked + .checkbox-custom + .checkbox-text {
+    color: var(--primary-500);
+}
+
+/* UPLOAD IMAGE SPACING - ADD MARGIN FROM GENERATE BUTTON */
+.user-image-upload {
+    margin-bottom: 10px !important; /* Увеличен отступ от upload к generate кнопке */
+}
+
+.modern-upload-btn {
+    margin-bottom: var(--space-2);
+}
+
+/* GENERATE BUTTON TOP SPACING - EXTRA SPACE FROM FORM */
+.generate-btn {
+    margin-top: 10px !important; /* Дополнительный отступ сверху от чекбокса секции */
+    margin-bottom: 10px !important;
+}
+
+/* FORM ROW - USED FOR INLINE FORM CONTROLS */
+.form-row {
+    display: flex;
+    flex-direction: row !important;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.form-row .form-group {
+    display: block;
+    margin-bottom: 0 !important;
+}

@@ -1,0 +1,103 @@
+/* COST BADGE STYLES - Современный, минималистичный дизайн */
+/* Отдельный файл для lazy loading и лучшей производительности */
+
+/* Основной стиль бейджа стоимости */
+.cost-badge {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.786);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0.9;
+    z-index: 2;
+    pointer-events: none;
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+
+/* Адаптация для темной темы */
+[data-theme="dark"] .cost-badge,
+[data-theme="auto"] .cost-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Обеспечиваем позиционирование бейджа относительно кнопки */
+.generate-btn {
+    position: relative !important;
+}
+
+/* Медиа-запросы для адаптива */
+@media (max-width: 768px) {
+    /* Адаптация бейджа для мобильных */
+    .cost-badge {
+        right: 0.75rem;
+        font-size: 9px;
+        padding: 1px 6px;
+        opacity: 0.6;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Более компактный бейдж на маленьких экранах */
+    .cost-badge {
+        right: 0.5rem;
+        font-size: 8px;
+        padding: 1px 4px;
+        opacity: 0.5;
+        border-radius: 8px;
+    }
+}
+
+/* Анимации для плавных переходов */
+.cost-badge.fade-in {
+    animation: fadeInBadge 0.3s ease-in-out;
+}
+
+@keyframes fadeInBadge {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(10px);
+    }
+    to {
+        opacity: 0.75;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+/* Стили для различных состояний стоимости */
+.cost-badge.free {
+    color: var(--success-500);
+    border-color: var(--success-300);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.cost-badge.paid {
+    color: var(--primary-400);
+    border-color: var(--primary-300);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* Темная тема для цветовых вариаций */
+[data-theme="dark"] .cost-badge.free {
+    color: var(--success-400);
+    border-color: var(--success-500);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="dark"] .cost-badge.paid {
+    color: var(--primary-300);
+    border-color: var(--primary-400);
+    background: rgba(59, 130, 246, 0.15);
+}
