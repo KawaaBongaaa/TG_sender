@@ -19,11 +19,6 @@
 
     <!-- Telegram Web App SDK - для правильной авторизации в Telegram WebView -->
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
-
-
-
-    <!-- НоВый ЗАГРУЗЧИК ПРИЛОЖЕНИЯ ИЗ app_modern.js -->
-    <script type="module" src="app_modern.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -332,7 +327,7 @@
                         <div class="auth-content" style="padding: 30px; text-align: center;">
                             <p style="color: #333; font-size: 18px; margin-bottom: 30px;" data-i18n="auth_subtitle2">Just sign in with Telegram and start creating with joy.</p>
 
-                            <button class="auth-btn" onclick="window.pixPlaceApp?.authManager?.showAuthModal()" style="width: 100%; max-width: 300px; height: 80px; background: #0084ff; color: white; font-size: 20px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px auto; box-shadow: 0 4px 15px rgba(0,132,255,0.3);">
+                            <button class="auth-btn" onclick="handleTelegramLogin()" style="width: 100%; max-width: 300px; height: 80px; background: #0084ff; color: white; font-size: 20px; font-weight: bold; border: none; border-radius: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px auto; box-shadow: 0 4px 15px rgba(0,132,255,0.3);">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
                                     <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 5.547c.24.24.443.442.443.783v.054c0 .34-.203.542-.443.783l-.054.054-2.572 2.572-1.781 1.781a.48.48 0 0 1-.683 0l-.054-.054-.832-.832-.832-.832-.832-.832-.832-.832-.054-.054a.48.48 0 0 1 0-.683l.054-.054 1.781-1.781L14.746 5.6c1.086 1.086 2.238 2.238 2.572 2.572z"/>
                                 </svg>
@@ -763,17 +758,16 @@
             </nav>
         </div>
     </footer>
-    <!-- НОВАЯ МОДУЛЬНАЯ СИСТЕМА ЗАГРУЗЧИКА -->
-    <script type="module" src="app/app.js"></script>
-
-    <!-- ДОПОЛНИТЕЛЬНЫЕ МОДУЛИ -->
     <script type="module" src="mode-cards.js"></script>
     <script type="module" src="cost-badge.js"></script>
     <script type="module" src="style-management.js"></script>
     <script type="module" src="ai-coach.js"></script>
     <script type="module" src="user-account.js"></script>
     <script type="module" src="strength-slider.js"></script>
+    <script type="module" src="app_modern.js"></script>
     <script type="module" src="parallel-generation.js"></script>
+
+    <script src="telegram-auth.js"></script>
 
     <!-- ФИНАЛЬНЫЙ ТЕСТ - КНОПКА В BODY - ВРЕМЕННО ОТКЛЮЧЕНА -->
     <button onclick="handleTelegramLogin()" style="position: fixed; top: 200px; left: 200px; width: 400px; height: 120px; background: #ff00ff; color: white; font-size: 32px; font-weight: bold; border: 10px solid #000000; border-radius: 20px; z-index: 1000000; cursor: pointer; display: none !important;">

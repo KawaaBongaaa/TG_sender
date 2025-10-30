@@ -1,66 +1,20 @@
-// ===== СОВМЕСТИМОСТЬ =====
+// 🔥 LAZY LOADING словарей - только текущий язык загружается по требованию
 
-// Глобальные утилиты для старых модулей
-window.userImageState = { images: [] };
-window.CONFIG = {
-    WEBHOOK_URL: 'https://hook.us2.make.com/x2hgl6ocask8hearbpwo3ch7pdwpdlrk',
-    MAX_IMAGE_MB: 10,
-    ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-};
-
-// ===== ЗАПУСК НОВОГО ПРИЛОЖЕНИЯ =====
-
-/**
- * 🚀 НОВЫЙ app_modern.js - ЗАГРУЗЧИК НОВОЙ МОДУЛЬНОЙ АРХИТЕКТУРЫ
- * Основная точка входа в новую модульную систему
- */
-
-// нагрузка организации app modern.js - крайне критичный файл ~каждый день меняется!!! @ lint:ignore
-import { App } from './app/app.js';
+// ✅ НОВЫЕ: Импорт сервисов вместо прямых зависимостей
+import { initializeGlobalServices } from './core/services.js';
 import { AppStateManager } from './store/app-state.js';
-
-// 🔥 ДОБАВЛЕНЫ НЕДОСТАЮЩИЕ ИМПОРТЫ ДЛЯ РАБОТЫ ФУНКЦИЙ
-import { updateUserNameDisplay, updateUserBalanceDisplay, showSubscriptionNotice, showWarningAboutNoImage, toggleModeDetails, showHistory, showBackButton, initStyleCarousel } from './navigation-manager.js';
-import { readFileAsDataURL, maybeCompressImage, sanitizeJsonString, generateUUIDv4, isIOS, downloadOrShareImage, triggerHapticFeedback } from './utils.js';
-import { createCoachButton, initAICoach, createChatButton } from './ai-coach.js';
-import { updateHistoryItemWithImage, createLoadingHistoryItem, viewHistoryItem, toggleHistoryList, clearHistory } from './history-manager.js';
 import { showScreen, showApp, showResult, displayFullResult, showResultToast, showProcessing, showAuth } from './screen-manager.js';
 import { dictionaryManager } from './dictionary-manager.js';
+
+// Импорт ScreenManager для работы с авторизацией
+import { updateUserNameDisplay, updateUserBalanceDisplay, showSubscriptionNotice, showWarningAboutNoImage, toggleModeDetails, showHistory, initStyleCarousel } from './navigation-manager.js';
+import { readFileAsDataURL, maybeCompressImage, sanitizeJsonString, generateUUIDv4, isIOS, downloadOrShareImage, triggerHapticFeedback } from './utils.js';
+import { createCoachButton, initAICoach, createChatButton } from './ai-coach.js';
+import { updateHistoryItemWithImage, createLoadingHistoryItem, viewHistoryItem } from './history-manager.js';
 import { generationManager } from './parallel-generation.js';
-import { initializeGlobalServices } from './core/services.js';
-
-// Запуск приложения при DOM ready
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        console.log('🚀 Starting new modular pixPLace application...');
-
-        // Создание и запуск нового приложения
-        const app = new App();
-
-        // Инициализация
-        await app.initialize();
-
-        // Запуск
-        await app.start();
-
-        console.log('✅ New modular application started successfully!');
-
-    } catch (error) {
-        console.error('❌ Failed to start new application:', error);
-
-        // Fallback: показать ошибку пользователю
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.innerHTML = `
-                <div class="loading-content">
-                    <h2>Application Error</h2>
-                    <p>Please refresh the page or contact support.</p>
-                    <button onclick="window.location.reload()">Refresh Page</button>
-                </div>
-            `;
-        }
-    }
-});
+// Import mode management functions with lazy loading support
+let modeCardsExports = null;
+let costBadgeModule = null;
 
 async function getSelectedModeFromComponent() {
     if (modeCardsExports) {
@@ -137,9 +91,6 @@ const appState = new AppStateManager();
 
 // Экспортируем appState в window для доступа из параллельной генерации
 window.appState = appState;
-
-// 🔥 ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ ДЛЯ СОВМЕСТИМОСТИ С MODE-CARDS МОДУЛЕМ
-let modeCardsExports = null; // Будет инициализирована позже в initializeUI()
 
     // 🔥 ДОБАВЛЕНИЕ: Инициализация дефолтных значений в localStorage при первом запуске
 appState.initializeDefaults();
@@ -661,7 +612,7 @@ class HistoryManager {
 
 
 // 🎯 Utility Functions
-// showToast функция теперь доступна через window.showToast (из screen-manager.js)
+// showToast функция теперь импортируется из screen-manager.js
 
     // Экспортируем другие функции для параллельной генерации
     // window.showResult убираем - теперь используем только showResultToast и displayFullResult
@@ -881,7 +832,11 @@ async function initializeUI() {
         });
     }
 
-
+    // Form submission
+    const form = document.querySelector('.generation-form');
+    if (form) {
+        form.addEventListener('submit', generateImage);
+    }
 
     // 🎯 LAZY LOAD: Initialize Mode Cards Component and Cost Badge
     try {
@@ -915,8 +870,12 @@ async function initializeUI() {
     } catch (error) {
         console.error('❌ Failed to load Mode Cards or Cost Badge components:', error);
         // Fallback to legacy initialization
-        console.log('🔄 Fallback: legacy mode carousel initialization skipped (obsolete)');
-        // NOTE: initModeCarousel() was removed - using new mode-cards.js module
+        console.log('🔄 Fallback: trying legacy mode carousel initialization');
+        try {
+            initModeCarousel();
+        } catch (legacyError) {
+            console.error('❌ Legacy mode carousel also failed:', legacyError);
+        }
     }
 
     // 🚀 Initialize user account and update mode selection
