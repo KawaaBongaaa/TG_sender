@@ -72,7 +72,7 @@ const CONFIG = {
     PREVIEW_JPEG_QUALITY: 0.9,
     TELEGRAM_BOT_URL: 'https://t.me/pixPLaceBot?start=user_shared', // Замените на ссылку вашего бота
     SHARE_DEFAULT_HASHTAGS: '#pixPLaceBot #Telegram #Ai',
-    MAINTENANCE_MODE: true // Режим технического обслуживания
+    MAINTENANCE_MODE: false // Режим технического обслуживания
 };
 
 // 🚀 Экспорт CONFIG для доступа из других модулей (ai-coach.js)
